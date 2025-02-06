@@ -31,6 +31,8 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IEnableLo
         base.OnClosing(e);
     }
 
+    public ReactiveCommand<Unit,Unit> Shutdown { get; }= ReactiveCommand.Create(() => { });
+    
     public MainWindow()
     {
         PositionChanged += (s, e) => UpdatePosition(e.Point.X, e.Point.Y);
@@ -38,6 +40,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IEnableLo
         Log.Verbose("MainWindow");
         if (!Design.IsDesignMode)
         {
+            Shutdown.InvokeCommand((Application.Current as App)?.ExitCommand);
             EditSettingsCommand = ReactiveCommand.CreateFromTask(EditSettingsAsync);
             NewSettingsCommand = ReactiveCommand.CreateFromTask(NewSettingsAsync);
         }

@@ -13,15 +13,18 @@
     </Design.DataContext>
     <UserControl.Styles>
         <Style Selector="Button:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="#99ffffff"/>
+            <Setter Property="Background" Value="#99ffffff" />
         </Style>
     </UserControl.Styles>
-    <Button Margin="2" Padding="2" Background="White" Command="{Binding #ParentControl.Open}" CommandParameter="{Binding Uri}">
-        <Image 
+    <Button Margin="2" Padding="2" Background="White" Command="{Binding #ParentControl.Open}"
+            CommandParameter="{Binding Uri}">
+        <Image
             Width="24"
             Height="24"
             ToolTip.Tip="{Binding Name}"
+            ToolTip.ShowDelay="10"
             Source="{Binding Type,
-                Converter={x:Static converters:LinkIconConverter.Instance}}" />
+                Converter={x:Static converters:LinkIconConverter.Instance}}">
+        </Image>
     </Button>
 </UserControl>

@@ -3,7 +3,7 @@
              xmlns:gui="clr-namespace:MMKiwi.ProjDash.GUI"
              x:Class="MMKiwi.ProjDash.GUI.App"
              x:DataType="gui:App"
-             RequestedThemeVariant="Default">
+             RequestedThemeVariant="Light">
     <TrayIcon.Icons>
         <TrayIcons>
             <TrayIcon Icon="/Assets/Icon.ico" 
