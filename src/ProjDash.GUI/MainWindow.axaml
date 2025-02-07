@@ -4,20 +4,33 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:viewModel="clr-namespace:MMKiwi.ProjDash.ViewModel;assembly=MMKiwi.ProjDash.ViewModel"
         xmlns:i="https://github.com/projektanker/icons.avalonia"
-        mc:Ignorable="d" d:DesignWidth="810" d:DesignHeight="150"
+        mc:Ignorable="d" d:DesignWidth="810" d:DesignHeight="190
+        "
         x:Class="MMKiwi.ProjDash.GUI.MainWindow"
         x:DataType="viewModel:MainWindowViewModel"
         Width="810" Height="550"
-        MinWidth="290"
-        MinHeight="150"
+        MinWidth="270"
+        MinHeight="190"
         ExtendClientAreaChromeHints="NoChrome"
+        ExtendClientAreaTitleBarHeightHint="40"
         ExtendClientAreaToDecorationsHint="True"
         Name="ParentWindow"
+        Background="Transparent"
         Icon="Assets\Icon.ico"
         Title="Project Dashboard">
     <Grid RowDefinitions="Auto,*, Auto" ColumnDefinitions="Auto,*,Auto,Auto">
+        <Border IsHitTestVisible="False"
+                CornerRadius="0 0 10 10"
+                BorderBrush="#707070"
+                Grid.Row="1"
+                Grid.RowSpan="2"
+                Grid.ColumnSpan="4"
+                Background="White"
+                BorderThickness="1 0 1 1" />
         <Border Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="4"
                 IsHitTestVisible="False"
+                Name="TitlebarBorder"
+                CornerRadius="10 10 0 0 "
                 Background="{DynamicResource SystemControlBackgroundAccentBrush}" />
         <Button Grid.Row="0" Grid.Column="0" Margin="8 0"
                 Classes="accent"
@@ -29,23 +42,40 @@
                     <MenuItem
                         Header="New Configuration"
                         HotKey="Ctrl+N"
-                        Command="{Binding #ParentWindow.NewSettingsCommand}" />
-                    <MenuItem 
+                        Command="{Binding #ParentWindow.NewSettingsCommand}">
+                        <MenuItem.Icon>
+                            <i:Icon Value="mdi-note-plus" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem
                         Header="Edit Configuration"
                         HotKey="Ctrl+O"
-                        Command="{Binding #ParentWindow.EditSettingsCommand}"/>
-                    <MenuItem 
+                        Command="{Binding #ParentWindow.EditSettingsCommand}">
+                        <MenuItem.Icon>
+                            <i:Icon Value="mdi-pencil" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem
                         Header="Refresh"
                         HotKey="Ctrl+R"
-                        Command="{Binding RefreshSettings}"/>
+                        Command="{Binding RefreshSettings}" >
+                        <MenuItem.Icon>
+                            <i:Icon Value="mdi-refresh" />
+                        </MenuItem.Icon>
+                    </MenuItem>
                     <MenuItem Header="-" />
                     <MenuItem
                         Header="Hide"
-                        Command="{Binding #ParentWindow.Close}" />
+                        Command="{Binding #ParentWindow.Close}">
+                    </MenuItem>
                     <MenuItem
                         Header="Exit"
                         HotKey="Alt+F4"
-                        Command="{Binding #ParentWindow.Shutdown}" />
+                        Command="{Binding #ParentWindow.Shutdown}">
+                        <MenuItem.Icon>
+                            <i:Icon Value="mdi-close" />
+                        </MenuItem.Icon>
+                    </MenuItem>
                 </MenuFlyout>
             </Button.Flyout>
         </Button>
@@ -53,24 +83,16 @@
         <TextBlock
             Grid.Row="0"
             Grid.Column="1"
-            Grid.ColumnSpan="2" Text="Project Dashboard" Margin="0 8  8 8"
+            Grid.ColumnSpan="2" Text="Project Dashboard" Margin="0 4  8 4"
             VerticalAlignment="Center"
             IsHitTestVisible="False"
             Foreground="{DynamicResource SystemControlBackgroundChromeWhiteBrush}" FontWeight="SemiBold" />
-        <Button Grid.Row="0" Grid.Column="3" Margin="8"
+        <Button Grid.Row="0" Grid.Column="3" Margin="8 4"
                 Classes="accent"
                 Padding="4"
                 IsHitTestVisible="True"
                 Command="{Binding #ParentWindow.Close }"
                 i:Attached.Icon="mdi-close" />
-
-        <Button
-            Grid.Row="2"
-            Grid.Column="0"
-            Margin="8 8 0 8"
-            i:Attached.Icon="mdi-note-plus"
-            Padding="2"
-            Command="{Binding #ParentWindow.NewSettingsCommand}" />
         <Button
             Grid.Row="2"
             Grid.Column="2"

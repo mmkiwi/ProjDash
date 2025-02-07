@@ -94,7 +94,7 @@ public partial class App : Application
         NativeMenu subMenu = new();
         foreach (var link in project.Links)
         {
-            Bitmap? bitmap = ImageToBitmap(conv.Convert(link.Type));
+            Bitmap? bitmap = ImageToBitmap(conv.Convert(link.Type, link.Color));
             NativeMenuItem submenuItem = new()
             {
                 Header = link.Name, CommandParameter = link.Uri, Command = LaunchMenuItem, Icon = bitmap
