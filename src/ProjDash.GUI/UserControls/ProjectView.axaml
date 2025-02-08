@@ -2,10 +2,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:model="clr-namespace:MMKiwi.ProjDash.ViewModel.Model;assembly=MMKiwi.ProjDash.ViewModel"
              xmlns:userControls="clr-namespace:MMKiwi.ProjDash.GUI.UserControls"
+             xmlns:viewModel="clr-namespace:MMKiwi.ProjDash.ViewModel;assembly=MMKiwi.ProjDash.ViewModel"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="200"
-             x:DataType="model:Project"
+             x:DataType="viewModel:ProjectViewModel"
              MinWidth="250"
              d:DataContext="{x:Static userControls:ProjectView.DesignViewModel}"
              x:Class="MMKiwi.ProjDash.GUI.UserControls.ProjectView">

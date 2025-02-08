@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Frozen;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Reactive;
@@ -77,7 +78,7 @@ public partial class App : Application
             return null;
         NativeMenu menu = new();
         foreach (var project in settings.Projects)
-            menu.Add(ProjectToMenuItem(project));
+            menu.Add(ProjectToMenuItem(project, settings.IconImports ?? FrozenDictionary<string, IconImport>.Empty));
         return menu;
     }
 
@@ -88,13 +89,13 @@ public partial class App : Application
         await TopLevel.GetTopLevel(MainWindow)!.Launcher.LaunchUriAsync(uri).ConfigureAwait(true);
     }
 
-    private NativeMenuItem ProjectToMenuItem(Project project)
+    private NativeMenuItem ProjectToMenuItem(Project project, IReadOnlyDictionary<string, IconImport> icons)
     {
         LinkIconConverter conv = new();
         NativeMenu subMenu = new();
         foreach (var link in project.Links)
         {
-            Bitmap? bitmap = ImageToBitmap(conv.Convert(link.Type, link.Color));
+            Bitmap? bitmap = ImageToBitmap(conv.Convert(link.Icon, icons, link.Color));
             NativeMenuItem submenuItem = new()
             {
                 Header = link.Name, CommandParameter = link.Uri, Command = LaunchMenuItem, Icon = bitmap

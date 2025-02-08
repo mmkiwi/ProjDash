@@ -4,13 +4,11 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:model="clr-namespace:MMKiwi.ProjDash.ViewModel.Model;assembly=MMKiwi.ProjDash.ViewModel"
              xmlns:converters="clr-namespace:MMKiwi.ProjDash.GUI.Converters"
+             xmlns:viewModel="clr-namespace:MMKiwi.ProjDash.ViewModel;assembly=MMKiwi.ProjDash.ViewModel"
              mc:Ignorable="d" d:DesignWidth="32" d:DesignHeight="32"
-             x:DataType="model:ProjectLink"
+             x:DataType="viewModel:ProjectLinkViewModel"
              Name="ParentControl"
              x:Class="MMKiwi.ProjDash.GUI.UserControls.ProjectLinkButton">
-    <Design.DataContext>
-        <model:ProjectLink Name="Test" Type="{x:Static model:UriType.ProjectWise}" Color="Green"  />
-    </Design.DataContext>
     <UserControl.Styles>
         <Style Selector="Button:pointerover /template/ ContentPresenter">
             <Setter Property="Background" Value="#99ffffff" />
@@ -25,7 +23,8 @@
             ToolTip.ShowDelay="10">
             <Image.Source>
                 <MultiBinding Converter="{x:Static converters:LinkIconConverter.Instance}">
-                    <CompiledBinding Path="Type" />
+                    <CompiledBinding Path="Icon" />
+                    <CompiledBinding Path="Icons" />
                     <CompiledBinding Path="Color" />
                 </MultiBinding>
             </Image.Source>

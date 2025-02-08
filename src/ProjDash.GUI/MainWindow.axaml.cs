@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using System.Diagnostics;
 using System.Reactive;
 using System.Reactive.Disposables;
@@ -13,6 +14,8 @@ using Avalonia.Threading;
 using MMKiwi.ProjDash.GUI.UserControls;
 using MMKiwi.ProjDash.ViewModel;
 using MMKiwi.ProjDash.ViewModel.Model;
+
+using Projektanker.Icons.Avalonia;
 
 using ReactiveUI;
 
@@ -31,8 +34,8 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IEnableLo
         base.OnClosing(e);
     }
 
-    public ReactiveCommand<Unit,Unit> Shutdown { get; }= ReactiveCommand.Create(() => { });
-    
+    public ReactiveCommand<Unit, Unit> Shutdown { get; } = ReactiveCommand.Create(() => { });
+
     public MainWindow()
     {
         PositionChanged += (s, e) => UpdatePosition(e.Point.X, e.Point.Y);
@@ -60,24 +63,24 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IEnableLo
             ViewModel!.ErrorDialog.RegisterHandler(HandleError);
 
             var settings = ViewModel!.WindowSettings;
-            
+
             if (settings is { Width: > 0, Height: > 0 })
             {
                 Width = settings.Width.Value;
                 Height = settings.Height.Value;
             }
-            
+
             if (settings is { Left: >= -10 and < 0, Top: >= -10 and < 0 })
             {
                 // maximized
                 WindowState = WindowState.Maximized;
-            } else if (settings is { Top: not null, Left: not null })
+            }
+            else if (settings is { Top: not null, Left: not null })
             {
                 int top = Math.Max(-8, settings.Top.Value);
                 int left = Math.Max(-8, settings.Left.Value);
                 Position = new PixelPoint(left, top);
             }
-
 
 
             _isLoaded = true;
@@ -92,21 +95,13 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IEnableLo
     private void UpdateSize(double width, double height)
     {
         if (ViewModel is not null && _isLoaded)
-            ViewModel.WindowSettings = ViewModel.WindowSettings with
-            {
-                Width = width,
-                Height = height, 
-            };
+            ViewModel.WindowSettings = ViewModel.WindowSettings with { Width = width, Height = height, };
     }
 
     private void UpdatePosition(int x, int y)
     {
         if (ViewModel is not null && _isLoaded)
-            ViewModel.WindowSettings = ViewModel.WindowSettings with
-            {
-                Top = y,
-                Left = x, 
-            };
+            ViewModel.WindowSettings = ViewModel.WindowSettings with { Top = y, Left = x, };
     }
 
     private bool _isLoaded = false;
@@ -153,11 +148,34 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IEnableLo
                         [
                             new ProjectLink()
                             {
-                                Name = "Link", Type = UriType.Default, Uri = new("https://example.com")
+                                Name = "Link",
+                                Icon = IconRef.Material("mdi-folder"),
+                                Uri = new("https://example.com")
+                            },
+                            new ProjectLink()
+                            {
+                                Name = "Link", Icon = IconRef.Import("rectangle"), Uri = new("https://example.com")
                             }
                         ]
                     }
-                ]
+                ],
+                IconImports = new Dictionary<string, IconImport>()
+                {
+                    {
+                        "rectangle",
+                        new IconImport()
+                        {
+                            ClipBounds = "0.0,0.0,256.0,256.0",
+                            Geometry =
+                            [
+                                new GeometryImport()
+                                {
+                                    Path = "M 0,0 H 256 V 256 H 0 Z", Color = "yellow", IsForeground = true
+                                }
+                            ]
+                        }
+                    }
+                }.ToFrozenDictionary()
             };
 
             var blankDoc = JsonSerializer.SerializeToNode(blankRoot, SettingsSerializer.Default.SettingsRoot)!;

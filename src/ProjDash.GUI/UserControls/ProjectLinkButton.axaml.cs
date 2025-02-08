@@ -3,13 +3,14 @@
 using Avalonia.Controls;
 using Avalonia.ReactiveUI;
 
+using MMKiwi.ProjDash.ViewModel;
 using MMKiwi.ProjDash.ViewModel.Model;
 
 using ReactiveUI;
 
 namespace MMKiwi.ProjDash.GUI.UserControls;
 
-public partial class ProjectLinkButton : ReactiveUserControl<ProjectLink>
+public partial class ProjectLinkButton : ReactiveUserControl<ProjectLinkViewModel>
 {
     public ProjectLinkButton()
     {

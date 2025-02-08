@@ -1,6 +1,6 @@
 ﻿namespace MMKiwi.ProjDash.ViewModel.Model;
 
-public record Project
+public sealed record Project
 {
     public required string Name { get; init; }
     public required string Client { get; init; }

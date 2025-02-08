@@ -108,7 +108,7 @@
             Padding="2"
             Command="{Binding RefreshSettings}" />
         <ScrollViewer Grid.Column="0" Grid.ColumnSpan="4" Grid.Row="1" Margin="8">
-            <ItemsControl ItemsSource="{Binding Settings.Projects}">
+            <ItemsControl ItemsSource="{Binding Projects}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <WrapPanel Orientation="Horizontal" />

@@ -17,11 +17,11 @@ public class ViewLocator : IDataTemplate
             {
                 ViewModel = mainWindowViewModel
             },
-            Project project => new ProjectView()
+            ProjectViewModel project => new ProjectView()
             {
-                DataContext = project
+                ViewModel = project
             },
-            ProjectLink projectLink => new ProjectLinkButton()
+            ProjectLinkViewModel projectLink => new ProjectLinkButton()
             {
                 ViewModel = projectLink
             },

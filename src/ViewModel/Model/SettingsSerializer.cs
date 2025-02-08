@@ -10,4 +10,4 @@ namespace MMKiwi.ProjDash.ViewModel.Model;
     AllowTrailingCommas = true,
     ReadCommentHandling = JsonCommentHandling.Skip,
     NumberHandling = JsonNumberHandling.AllowReadingFromString | JsonNumberHandling.AllowNamedFloatingPointLiterals)]
-public partial class SettingsSerializer : JsonSerializerContext;
+public sealed partial class SettingsSerializer : JsonSerializerContext;

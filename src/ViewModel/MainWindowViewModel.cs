@@ -13,7 +13,7 @@ using Splat;
 
 namespace MMKiwi.ProjDash.ViewModel;
 
-public partial class MainWindowViewModel : ViewModelBase, IEnableLogger
+public sealed partial class MainWindowViewModel : ViewModelBase, IEnableLogger
 {
     public MainWindowViewModel(SettingsRoot settings)
     {
@@ -22,6 +22,8 @@ public partial class MainWindowViewModel : ViewModelBase, IEnableLogger
         // this is design, just set settings
         _settings = Observable.Return(settings)
             .ToProperty(this, v => v.Settings);
+        _projects = Observable.Return(GetProjectViewModels(settings))
+            .ToProperty(this, v => v.Projects);
     }
 
     public MainWindowViewModel()
@@ -34,6 +36,8 @@ public partial class MainWindowViewModel : ViewModelBase, IEnableLogger
                 outputScheduler: RxApp.MainThreadScheduler);
         _settings = RefreshSettings
             .ToProperty(this, v => v.Settings);
+        _projects = RefreshSettings.Select(GetProjectViewModels)
+            .ToProperty(this, v => v.Projects);
 
         this.WhenActivated(d =>
         {
@@ -43,6 +47,8 @@ public partial class MainWindowViewModel : ViewModelBase, IEnableLogger
                 .DisposeWith(d);
         });
     }
+
+    private IReadOnlyList<ProjectViewModel> GetProjectViewModels(SettingsRoot arg) => [..arg.Projects.Select(p => new ProjectViewModel(p, arg.IconImports))];
 
     private WindowSettings LoadWindowSettings()
     {
@@ -135,6 +141,9 @@ public partial class MainWindowViewModel : ViewModelBase, IEnableLogger
     private readonly ObservableAsPropertyHelper<SettingsRoot> _settings;
     public SettingsRoot Settings => _settings.Value;
 
+    private readonly ObservableAsPropertyHelper<IReadOnlyList<ProjectViewModel>> _projects;
+    public IReadOnlyList<ProjectViewModel> Projects => _projects.Value; 
+    
     public async Task SaveSchemaAsync()
     {
         var schemaFile = File.OpenWrite(SchemaPath);
