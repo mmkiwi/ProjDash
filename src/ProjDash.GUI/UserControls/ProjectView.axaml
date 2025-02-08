@@ -1,0 +1,30 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:model="clr-namespace:MMKiwi.ProjDash.ViewModel.Model;assembly=MMKiwi.ProjDash.ViewModel"
+             xmlns:userControls="clr-namespace:MMKiwi.ProjDash.GUI.UserControls"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="200"
+             x:DataType="model:Project"
+             MinWidth="250"
+             d:DataContext="{x:Static userControls:ProjectView.DesignViewModel}"
+             x:Class="MMKiwi.ProjDash.GUI.UserControls.ProjectView">
+    <UserControl.Styles>
+        <Style Selector="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource AccentButtonForeground}" />
+        </Style>
+    </UserControl.Styles>
+    <Grid Margin="4" RowDefinitions="Auto,Auto,Auto,Auto">
+        <Border Background="{Binding Color, TargetNullValue={StaticResource AccentButtonBackground}}" Grid.Row="0" Grid.RowSpan="4" CornerRadius="5" />
+        <TextBlock Margin="4 4 4 2 " Grid.Row="0" Text="{Binding Name}" FontWeight="DemiBold" />
+        <TextBlock Margin="4 2" Grid.Row="1" Text="{Binding Client}" FontWeight="Light" />
+        <TextBlock Margin="4 2" Grid.Row="2" Text="{Binding ProjectNumber}" FontWeight="Light" />
+        <ItemsControl Grid.Row="3" ItemsSource="{Binding Links}">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal"/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+        </ItemsControl>
+    </Grid>
+</UserControl>

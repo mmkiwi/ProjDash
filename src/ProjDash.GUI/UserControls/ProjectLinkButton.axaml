@@ -1,0 +1,27 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:model="clr-namespace:MMKiwi.ProjDash.ViewModel.Model;assembly=MMKiwi.ProjDash.ViewModel"
+             xmlns:converters="clr-namespace:MMKiwi.ProjDash.GUI.Converters"
+             mc:Ignorable="d" d:DesignWidth="32" d:DesignHeight="32"
+             x:DataType="model:ProjectLink"
+             Name="ParentControl"
+             x:Class="MMKiwi.ProjDash.GUI.UserControls.ProjectLinkButton">
+    <Design.DataContext>
+        <model:ProjectLink Name="Test" Type="{x:Static model:UriType.Default}" />
+    </Design.DataContext>
+    <UserControl.Styles>
+        <Style Selector="Button:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#99ffffff"/>
+        </Style>
+    </UserControl.Styles>
+    <Button Margin="2" Padding="2" Background="White" Command="{Binding #ParentControl.Open}" CommandParameter="{Binding Uri}">
+        <Image 
+            Width="24"
+            Height="24"
+            ToolTip.Tip="{Binding Name}"
+            Source="{Binding Type,
+                Converter={x:Static converters:LinkIconConverter.Instance}}" />
+    </Button>
+</UserControl>

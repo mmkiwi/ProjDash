@@ -1,0 +1,62 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:gui="clr-namespace:MMKiwi.ProjDash.GUI"
+        xmlns:viewModel="clr-namespace:MMKiwi.ProjDash.ViewModel;assembly=MMKiwi.ProjDash.ViewModel"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        SizeToContent="Width"
+        Height="250"
+        x:Class="MMKiwi.ProjDash.GUI.ErrorDialog"
+        x:DataType="viewModel:ErrorDialogViewModel"
+        Name="ParentWindow"
+        Title="ErrorDialog">
+    <Grid RowDefinitions="Auto, Auto, Auto, *, Auto" Margin="4" ColumnDefinitions="*,Auto">
+        <SelectableTextBlock
+            Text="{Binding MainMessage}"
+            Margin="4 2" />
+        <SelectableTextBlock
+            Grid.Column="0"
+            Grid.ColumnSpan="2"
+            Grid.Row="1"
+            Text="{Binding Exception.Message}"
+            Margin="4 2" />
+        <ToggleButton
+            Grid.Column="0"
+            Grid.ColumnSpan="2"
+            Grid.Row="2"
+            Content="Show Details"
+            IsVisible="{Binding Exception, Converter={x:Static ObjectConverters.IsNotNull}}"
+            IsChecked="{Binding IsExpanded}"
+            Margin="4 2" />
+        <ScrollViewer
+            Grid.Column="0"
+            Grid.ColumnSpan="2"
+            Grid.Row="3"
+            IsVisible="{Binding IsExpanded}"
+            Margin="4 2">
+            <SelectableTextBlock
+                Text="{Binding Exception}" />
+        </ScrollViewer>
+        <Button
+            Grid.Column="0"
+            HorizontalContentAlignment="Right"
+            Grid.Row="4"
+            Command="{Binding #ParentWindow.CloseCommand}"
+            CommandParameter="{x:Static viewModel:ErrorDialogResult.Secondary}"
+            HorizontalAlignment="Right"
+            Content="{Binding SecondaryButtonText}"
+            IsVisible="{Binding SecondaryButtonText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+            Margin="4 2" />
+        <Button
+            Grid.Column="1"
+            Grid.Row="4"
+            Command="{Binding #ParentWindow.CloseCommand}"
+            CommandParameter="{x:Static viewModel:ErrorDialogResult.Primary}"
+            HorizontalAlignment="Right"
+            Content="{Binding PrimaryButtonText}"
+            Classes="accent"
+            IsDefault="True"
+            Margin="4 2" />
+    </Grid>
+</Window>
