@@ -25,7 +25,7 @@ class Program
     // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
     // yet and stuff might break.
     [STAThread]
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         bool verbose = args.Contains("--verbose", StringComparer.CurrentCultureIgnoreCase);
         using var log = new LoggerConfiguration()
@@ -37,12 +37,12 @@ class Program
             .WriteTo.File(MainWindowViewModel.LogPath, rollingInterval: RollingInterval.Day)
             .CreateLogger();
 
-        bool mutexCreated = false;
-        using Mutex mutex = new(true, @"ProjDash.mutex", out mutexCreated);
+        using Mutex mutex = new(true, @"ProjDash.mutex", out bool mutexCreated);
 
         if (!mutexCreated)
         {
             Log.Error("Program already running. Exiting...");
+            await WindowPipe.SendMessageAsync().ConfigureAwait(false);
             return;
         }
 
@@ -53,7 +53,7 @@ class Program
         try
         {
             Log.Information("Startup");
-
+            
             BuildAvaloniaApp()
                 .StartWithClassicDesktopLifetime(args);
         }
@@ -63,7 +63,7 @@ class Program
         }
         finally
         {
-            Log.CloseAndFlush();
+            await Log.CloseAndFlushAsync().ConfigureAwait(false);
         }
     }
 

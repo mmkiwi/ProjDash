@@ -65,6 +65,11 @@
                     </MenuItem>
                     <MenuItem Header="-" />
                     <MenuItem
+                        Header="Logs"
+                        Command="{Binding #ParentWindow.ShowLogsCommand}">
+                    </MenuItem>
+                    <MenuItem Header="-" />
+                    <MenuItem
                         Header="Hide"
                         Command="{Binding #ParentWindow.Close}">
                     </MenuItem>

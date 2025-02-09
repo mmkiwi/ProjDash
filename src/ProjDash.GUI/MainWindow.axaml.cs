@@ -7,7 +7,6 @@ using System.Text.Json;
 
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Interactivity;
 using Avalonia.ReactiveUI;
 using Avalonia.Threading;
 
@@ -15,7 +14,6 @@ using MMKiwi.ProjDash.GUI.UserControls;
 using MMKiwi.ProjDash.ViewModel;
 using MMKiwi.ProjDash.ViewModel.Model;
 
-using Projektanker.Icons.Avalonia;
 
 using ReactiveUI;
 
@@ -46,6 +44,13 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IEnableLo
             Shutdown.InvokeCommand((Application.Current as App)?.ExitCommand);
             EditSettingsCommand = ReactiveCommand.CreateFromTask(EditSettingsAsync);
             NewSettingsCommand = ReactiveCommand.CreateFromTask(NewSettingsAsync);
+            ShowLogsCommand = ReactiveCommand.CreateFromTask(async () =>
+            {
+                string? path = Path.GetDirectoryName(MainWindowViewModel.LogPath);
+                if (Directory.Exists(path))
+                    await Launcher.LaunchUriAsync(new(path)).ConfigureAwait(false);
+            });
+           
         }
         else
         {
@@ -53,6 +58,8 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IEnableLo
                 ReactiveCommand.Create(() => this.Log().Info($"Editing {MainWindowViewModel.SettingsPath}"));
             NewSettingsCommand =
                 ReactiveCommand.Create(() => this.Log().Info($"New {MainWindowViewModel.SettingsPath}"));
+            ShowLogsCommand =
+                ReactiveCommand.Create(() => this.Log().Info($"Showing Logs"));
             ViewModel = DesignViewModel;
         }
 
@@ -82,11 +89,16 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IEnableLo
                 Position = new PixelPoint(left, top);
             }
 
-
             _isLoaded = true;
 
             if (!Design.IsDesignMode)
             {
+                // Hook the message to show a window 
+                WindowPipe.ShowWindowMessage.SubscribeOn(RxApp.MainThreadScheduler).Subscribe(_ =>
+                {
+                    Log.Information("Bring to front message recieved");
+                    App.Current!.Show();
+                }).DisposeWith(d);
                 Observable.Return(Unit.Default).InvokeCommand(ViewModel, vm => vm.RefreshSettings);
             }
         });
@@ -162,8 +174,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IEnableLo
                 IconImports = new Dictionary<string, IconImport>()
                 {
                     {
-                        "rectangle",
-                        new IconImport()
+                        "rectangle", new IconImport()
                         {
                             ClipBounds = "0.0,0.0,256.0,256.0",
                             Geometry =
@@ -218,6 +229,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IEnableLo
 
     public ReactiveCommand<Unit, Unit> EditSettingsCommand { get; }
     public ReactiveCommand<Unit, Unit> NewSettingsCommand { get; }
+    public ReactiveCommand<Unit, Unit> ShowLogsCommand { get; }
 
     private async Task HandleError(IInteractionContext<ErrorDialogViewModel, Unit> error)
     {

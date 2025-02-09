@@ -12,6 +12,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using Avalonia.Threading;
 
 using MMKiwi.ProjDash.GUI.Converters;
 using MMKiwi.ProjDash.Native;
@@ -42,6 +43,8 @@ public partial class App : Application
         HideCommand = ReactiveCommand.Create(Hide, isVisible.Select(iv => iv is true));
         LaunchMenuItem = ReactiveCommand.CreateFromTask<Uri>(LaunchMenuItemAsync);
     }
+
+    public static new App? Current => Application.Current as App;
 
     public override void Initialize()
     {
@@ -86,7 +89,10 @@ public partial class App : Application
 
     private async Task LaunchMenuItemAsync(Uri uri)
     {
-        await TopLevel.GetTopLevel(MainWindow)!.Launcher.LaunchUriAsync(uri).ConfigureAwait(true);
+        await Dispatcher.UIThread.InvokeAsync(async () =>
+        {
+            await TopLevel.GetTopLevel(MainWindow)!.Launcher.LaunchUriAsync(uri).ConfigureAwait(true);
+        }).ConfigureAwait(true);
     }
 
     private NativeMenuItem ProjectToMenuItem(Project project, IReadOnlyDictionary<string, IconImport> icons)
@@ -139,58 +145,71 @@ public partial class App : Application
 
     private void Exit()
     {
-        Log.Debug("Exiting application");
-        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-            desktop.Shutdown();
+        Dispatcher.UIThread.Invoke(() =>
+        {
+            Log.Debug("Exiting application");
+            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+                desktop.Shutdown();
+        });
     }
 
     private void Hide()
     {
-        Log.Verbose("Hiding application");
-        MainWindow?.Hide();
+        Dispatcher.UIThread.Invoke(() =>
+        {
+            Log.Verbose("Hiding application");
+            MainWindow?.Hide();
+        });
     }
 
-    private void Show()
+    internal void Show()
     {
-        Log.Verbose("Showing application");
-        MainWindow?.Show();
+        Dispatcher.UIThread.Invoke(() =>
+        {
+            Log.Verbose("Showing application");
+            MainWindow?.Show();
+            MainWindow?.Activate();
+        });
     }
 
     private void Toggle()
     {
-        Log.Verbose($"Toggling application Visible: {MainWindow?.IsVisible}");
-        if (MainWindow is null)
-            return;
-
-        bool isTop = false;
-        
-        try
+        Dispatcher.UIThread.Invoke(() =>
         {
-            var handle = MainWindow.TryGetPlatformHandle();
-            if (handle is not null)
+            Log.Verbose($"Toggling application Visible: {MainWindow?.IsVisible}");
+            if (MainWindow is null)
+                return;
+
+            bool isTop = false;
+
+            try
             {
-                isTop = NativeMethods.IsWindowOnTop(handle.Handle);
+                var handle = MainWindow.TryGetPlatformHandle();
+                if (handle is not null)
+                {
+                    isTop = NativeMethods.IsWindowOnTop(handle.Handle);
+                }
             }
-        }
-        catch (Exception e)
-        {
-            Log.Warning(e, "Error while trying to determine if window is on top");
-        }
+            catch (Exception e)
+            {
+                Log.Warning(e, "Error while trying to determine if window is on top");
+            }
 
-        switch (MainWindow.IsVisible, isTop)
-        {
-            case (true, true):
-                Log.Verbose($"Hiding, window is visible and on top");
-                MainWindow.Hide();
-                break;
-            case (true, false):
-                Log.Verbose($"Activating, window is visible and obscured");
-                MainWindow.Activate();
-                break;
-            case (false, _):
-                Log.Verbose($"Activating, window is visible and obscured");
-                MainWindow.Show();
-                break;
-        }
+            switch (MainWindow.IsVisible, isTop)
+            {
+                case (true, true):
+                    Log.Verbose($"Hiding, window is visible and on top");
+                    MainWindow.Hide();
+                    break;
+                case (true, false):
+                    Log.Verbose($"Activating, window is visible and obscured");
+                    MainWindow.Activate();
+                    break;
+                case (false, _):
+                    Log.Verbose($"Activating, window is visible and obscured");
+                    MainWindow.Show();
+                    break;
+            }
+        });
     }
 }
