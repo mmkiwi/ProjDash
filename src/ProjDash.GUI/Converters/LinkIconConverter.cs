@@ -1,12 +1,15 @@
 ﻿using System.Collections.Frozen;
 using System.Globalization;
 using System.Reflection;
+using System.Text.RegularExpressions;
 
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Data.Converters;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 
 using DynamicData;
@@ -16,9 +19,11 @@ using MMKiwi.ProjDash.ViewModel.Model;
 
 using Projektanker.Icons.Avalonia;
 
+using Serilog;
+
 namespace MMKiwi.ProjDash.GUI.Converters;
 
-public class LinkIconConverter : IMultiValueConverter
+public partial class LinkIconConverter : IMultiValueConverter
 {
     public object? Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)
     {
@@ -59,6 +64,7 @@ public class LinkIconConverter : IMultiValueConverter
             {
                 Value = materialIcon.Reference, Brush = colorBrush ?? Brushes.Black
             },
+            IconRef.DataUriIcon dataUriIcon => LoadBitmap(dataUriIcon),
             _ => DefaultIcon()
         };
 
@@ -71,5 +77,21 @@ public class LinkIconConverter : IMultiValueConverter
         }
     }
 
+    private Bitmap LoadBitmap(IconRef.DataUriIcon dataUriIcon)
+    {
+        var matches = DataUriRegex.Match(dataUriIcon.Reference);
+
+        if (matches.Groups.Count < 3)
+        {
+            Log.Error("Invalid DataUrl format");
+        }
+
+        using var fileStream = new MemoryStream(System.Convert.FromBase64String(matches.Groups["data"].Value));
+        return new Bitmap(fileStream);
+    }
+
+    [GeneratedRegex(@"data:(?<type>.+?);base64,(?<data>.+)")]
+    public partial Regex DataUriRegex { get; }
+    
     public static LinkIconConverter Instance => new();
 }

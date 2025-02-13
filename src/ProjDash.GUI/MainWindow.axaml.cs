@@ -14,7 +14,6 @@ using MMKiwi.ProjDash.GUI.UserControls;
 using MMKiwi.ProjDash.ViewModel;
 using MMKiwi.ProjDash.ViewModel.Model;
 
-
 using ReactiveUI;
 
 using Serilog;
@@ -50,7 +49,6 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IEnableLo
                 if (Directory.Exists(path))
                     await Launcher.LaunchUriAsync(new(path)).ConfigureAwait(false);
             });
-           
         }
         else
         {
@@ -209,6 +207,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IEnableLo
     {
         try
         {
+            await ViewModel!.SaveSchemaAsync().ConfigureAwait(true);
             await this.Launcher.LaunchUriAsync(new Uri(MainWindowViewModel.SettingsPath)).ConfigureAwait(true);
         }
         catch (Exception ex)
@@ -245,6 +244,24 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IEnableLo
     {
         Projects =
         [
+            new Project()
+            {
+                Name = "Name",
+                Client = "",
+                ProjectNumber = null!,
+                Color = null,
+                Links =
+                [
+                    new ProjectLink()
+                    {
+                        Name = "Link", Icon = IconRef.Material("mdi-folder"), Uri = new("https://example.com")
+                    },
+                    new ProjectLink()
+                    {
+                        Name = "Link", Icon = IconRef.Import("rectangle"), Uri = new("https://example.com")
+                    }
+                ]
+            },
             ..Enumerable.Repeat(ProjectView.DesignViewModel, 10)
         ]
     });
