@@ -1,19 +1,22 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:gui="clr-namespace:MMKiwi.ProjDash.GUI"
+             xmlns:helpers="clr-namespace:MMKiwi.ProjDash.GUI.Helpers"
              x:Class="MMKiwi.ProjDash.GUI.App"
              x:DataType="gui:App"
              RequestedThemeVariant="Light">
     <TrayIcon.Icons>
         <TrayIcons>
-            <TrayIcon Icon="/Assets/Icon.ico" 
+            <TrayIcon Icon="/Assets/Icon.ico"
                       ToolTipText="Project Dashboard" Command="{Binding ToggleCommand}">
                 <TrayIcon.Menu>
                     <NativeMenu>
                         <NativeMenuItem Header="Projects" Menu="{Binding Menu^}" />
                         <NativeMenuItemSeparator />
-                        <NativeMenuItem Header="Show Window" Command="{Binding ShowCommand}" IsVisible="{Binding ShowCommand.CanExecute^}" />
-                        <NativeMenuItem Header="Hide Window" Command="{Binding HideCommand}" IsVisible="{Binding HideCommand.CanExecute^}"  />
+                        <NativeMenuItem Header="Show Window" Command="{Binding ShowCommand}"
+                                        IsVisible="{Binding ShowCommand.CanExecute^}" />
+                        <NativeMenuItem Header="Hide Window" Command="{Binding HideCommand}"
+                                        IsVisible="{Binding HideCommand.CanExecute^}" />
                         <NativeMenuItem Header="Exit" Command="{Binding ExitCommand}" />
                     </NativeMenu>
                 </TrayIcon.Menu>
@@ -25,5 +28,12 @@
     </Application.DataTemplates>
     <Application.Styles>
         <FluentTheme />
+        <StyleInclude Source="avares://Avalonia.Controls.ColorPicker/Themes/Fluent/Fluent.xaml" />
+        <StyleInclude
+            Source="avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml" />
+        <Style Selector="Image">
+            <Setter Property="(helpers:GlobalImageOptions.InterpolationMode)"
+                    Value="HighQuality" />
+        </Style>
     </Application.Styles>
 </Application>

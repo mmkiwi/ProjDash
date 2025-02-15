@@ -4,9 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:model="clr-namespace:MMKiwi.ProjDash.ViewModel.Model;assembly=MMKiwi.ProjDash.ViewModel"
              xmlns:converters="clr-namespace:MMKiwi.ProjDash.GUI.Converters"
-             xmlns:viewModel="clr-namespace:MMKiwi.ProjDash.ViewModel;assembly=MMKiwi.ProjDash.ViewModel"
              mc:Ignorable="d" d:DesignWidth="32" d:DesignHeight="32"
-             x:DataType="viewModel:ProjectLinkViewModel"
+             x:DataType="model:ProjectLink"
              Name="ParentControl"
              x:Class="MMKiwi.ProjDash.GUI.UserControls.ProjectLinkButton">
     <UserControl.Styles>
@@ -24,7 +23,6 @@
             <Image.Source>
                 <MultiBinding Converter="{x:Static converters:LinkIconConverter.Instance}">
                     <CompiledBinding Path="Icon" />
-                    <CompiledBinding Path="Icons" />
                     <CompiledBinding Path="Color" />
                 </MultiBinding>
             </Image.Source>

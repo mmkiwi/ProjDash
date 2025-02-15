@@ -4,6 +4,7 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Text.Json;
 using System.Text.Json.Schema;
+using System.Windows.Input;
 
 using MMKiwi.ProjDash.ViewModel.Model;
 
@@ -13,19 +14,8 @@ using Splat;
 
 namespace MMKiwi.ProjDash.ViewModel;
 
-public sealed partial class MainWindowViewModel : ViewModelBase, IEnableLogger
+public partial class MainWindowViewModel : ViewModelBase, IEnableLogger
 {
-    public MainWindowViewModel(SettingsRoot settings)
-    {
-        RefreshSettings = ReactiveCommand.Create<Unit, SettingsRoot>(_ => SettingsRoot.Empty);
-        SaveWindowSettings = ReactiveCommand.Create<WindowSettings, Unit>(_ => Unit.Default);
-        // this is design, just set settings
-        _settings = Observable.Return(settings)
-            .ToProperty(this, v => v.Settings);
-        _projects = Observable.Return(GetProjectViewModels(settings))
-            .ToProperty(this, v => v.Projects);
-    }
-
     public MainWindowViewModel()
     {
         WindowSettings = LoadWindowSettings();
@@ -36,8 +26,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase, IEnableLogger
                 outputScheduler: RxApp.MainThreadScheduler);
         _settings = RefreshSettings
             .ToProperty(this, v => v.Settings);
-        _projects = RefreshSettings.Select(GetProjectViewModels)
-            .ToProperty(this, v => v.Projects);
+        EditComplete = ReactiveCommand.CreateFromTask<ProjectViewModel>(UpdateProjectAsync);
 
         this.WhenActivated(d =>
         {
@@ -48,7 +37,6 @@ public sealed partial class MainWindowViewModel : ViewModelBase, IEnableLogger
         });
     }
 
-    private IReadOnlyList<ProjectViewModel> GetProjectViewModels(SettingsRoot arg) => [..arg.Projects.Select(p => new ProjectViewModel(p, arg.IconImports))];
 
     private WindowSettings LoadWindowSettings()
     {
@@ -139,10 +127,20 @@ public sealed partial class MainWindowViewModel : ViewModelBase, IEnableLogger
 
 
     private readonly ObservableAsPropertyHelper<SettingsRoot> _settings;
-    public SettingsRoot Settings => _settings.Value;
+    public virtual SettingsRoot Settings => _settings.Value;
+    public ReactiveCommand<ProjectViewModel, Unit> EditComplete { get; }
 
-    private readonly ObservableAsPropertyHelper<IReadOnlyList<ProjectViewModel>> _projects;
-    public IReadOnlyList<ProjectViewModel> Projects => _projects.Value; 
+    private async Task UpdateProjectAsync(ProjectViewModel newProject)
+    {
+        var newSettings = Settings with { Projects = Settings.Projects.Replace(newProject.OriginalProject, newProject.ToProject()) };
+        var jsonStream = File.Open(SettingsPath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read);
+        await using (jsonStream.ConfigureAwait(false))
+        {
+            await JsonSerializer.SerializeAsync(jsonStream, newSettings, SettingsSerializer.Default.SettingsRoot).ConfigureAwait(false);
+        }
+
+        RefreshSettings.Execute().Subscribe();
+    }
     
     public async Task SaveSchemaAsync()
     {

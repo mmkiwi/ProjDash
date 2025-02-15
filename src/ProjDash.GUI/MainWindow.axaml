@@ -4,8 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:viewModel="clr-namespace:MMKiwi.ProjDash.ViewModel;assembly=MMKiwi.ProjDash.ViewModel"
         xmlns:i="https://github.com/projektanker/icons.avalonia"
-        mc:Ignorable="d" d:DesignWidth="810" d:DesignHeight="190
-        "
+        mc:Ignorable="d" d:DesignWidth="810" d:DesignHeight="190"
         x:Class="MMKiwi.ProjDash.GUI.MainWindow"
         x:DataType="viewModel:MainWindowViewModel"
         Width="810" Height="550"
@@ -113,7 +112,7 @@
             Padding="2"
             Command="{Binding RefreshSettings}" />
         <ScrollViewer Grid.Column="0" Grid.ColumnSpan="4" Grid.Row="1" Margin="8">
-            <ItemsControl ItemsSource="{Binding Projects}">
+            <ItemsControl ItemsSource="{Binding Settings.Projects}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <WrapPanel Orientation="Horizontal" />

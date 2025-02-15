@@ -1,4 +1,5 @@
 ﻿using System.Collections.Frozen;
+using System.Collections.Immutable;
 using System.Globalization;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -38,32 +39,30 @@ public partial class LinkIconConverter : IMultiValueConverter
 
         switch (values)
         {
-            case [IconRef icon, IReadOnlyDictionary<string, IconImport> icons, string color]:
-                return Convert(icon, icons, color);
-            case [IconRef icon, IReadOnlyDictionary<string, IconImport> icons, null]:
-                return Convert(icon, icons);
-            case [IconRef icon, IReadOnlyDictionary<string, IconImport> icons]:
-                return Convert(icon, icons);
-            case [null, _, _]:
+            case [IconRef icon, string color]:
+                return Convert(icon, color);
+            case [IconRef icon, null]:
+                return Convert(icon);
+            case [IconRef icon]:
+                return Convert(icon);
+            case [null]:
             case [null, _]:
-                return Convert(null, FrozenDictionary<string, IconImport>.Empty, null);
+                return Convert(null);
             default:
                 throw new NotSupportedException();
         }
     }
 
-    public IImage? Convert(IconRef? icon, IReadOnlyDictionary<string, IconImport> icons, string? color = null)
+    public IImage? Convert(IconRef? icon, string? color = null)
     {
+        var icons = App.Current?.MainWindow?.ViewModel?.Settings.IconImports ?? ImmutableDictionary<string,IconImport>.Empty;
         IBrush? colorBrush = color is not null ? Brush.Parse(color) : null;
         return icon switch
         {
             IconRef.ImportIcon importIcon => icons.TryGetValue(importIcon.Reference, out IconImport? iconImport)
                 ? iconImport.ToDrawingImage(colorBrush)
                 : DefaultIcon(),
-            IconRef.MaterialIcon materialIcon => new IconImage()
-            {
-                Value = materialIcon.Reference, Brush = colorBrush ?? Brushes.Black
-            },
+            IconRef.MaterialIcon materialIcon => GetIconImage(materialIcon, colorBrush),
             IconRef.DataUriIcon dataUriIcon => LoadBitmap(dataUriIcon),
             _ => DefaultIcon()
         };
@@ -74,6 +73,19 @@ public partial class LinkIconConverter : IMultiValueConverter
             {
                 Value = "mdi-link", Brush = colorBrush ?? Brushes.Black
             };
+        }
+    }
+
+    private IImage? GetIconImage(IconRef.MaterialIcon materialIcon, IBrush? colorBrush)
+    {
+        try
+        {
+            return new IconImage() { Value = materialIcon.Reference, Brush = colorBrush ?? Brushes.Black };
+        }
+        catch(Exception ex)
+        {
+            Log.Warning(ex, $"Could not load icon {materialIcon.Reference}");
+            return null;
         }
     }
 

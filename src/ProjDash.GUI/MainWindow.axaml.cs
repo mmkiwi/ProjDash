@@ -58,7 +58,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IEnableLo
                 ReactiveCommand.Create(() => this.Log().Info($"New {MainWindowViewModel.SettingsPath}"));
             ShowLogsCommand =
                 ReactiveCommand.Create(() => this.Log().Info($"Showing Logs"));
-            ViewModel = DesignViewModel;
+            ViewModel = new DesignMainWindowViewModel();
         }
 
 
@@ -150,9 +150,8 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IEnableLo
                 [
                     new Project()
                     {
-                        Name = "Name",
-                        Client = "Client",
-                        ProjectNumber = "000000",
+                        Title = "Name",
+                        Subtitles = ["Client", "000000"],
                         Color = null,
                         Links =
                         [
@@ -239,30 +238,33 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IEnableLo
             error.SetOutput(Unit.Default);
         }).ConfigureAwait(true);
     }
+}
 
-    public static MainWindowViewModel DesignViewModel => new(new SettingsRoot()
-    {
-        Projects =
-        [
-            new Project()
-            {
-                Name = "Name",
-                Client = "",
-                ProjectNumber = null!,
-                Color = null,
-                Links =
-                [
-                    new ProjectLink()
-                    {
-                        Name = "Link", Icon = IconRef.Material("mdi-folder"), Uri = new("https://example.com")
-                    },
-                    new ProjectLink()
-                    {
-                        Name = "Link", Icon = IconRef.Import("rectangle"), Uri = new("https://example.com")
-                    }
-                ]
-            },
-            ..Enumerable.Repeat(ProjectView.DesignViewModel, 10)
-        ]
-    });
+public class DesignMainWindowViewModel : MainWindowViewModel
+{
+    public override SettingsRoot Settings =>
+        new SettingsRoot
+        {
+            Projects =
+            [
+                new Project()
+                {
+                    Title = "Name",
+                    Subtitles = ["", null!],
+                    Color = null,
+                    Links =
+                    [
+                        new ProjectLink()
+                        {
+                            Name = "Link", Icon = IconRef.Material("mdi-folder"), Uri = new("https://example.com")
+                        },
+                        new ProjectLink()
+                        {
+                            Name = "Link", Icon = IconRef.Import("rectangle"), Uri = new("https://example.com")
+                        }
+                    ]
+                },
+                ..Enumerable.Repeat(ProjectView.DesignViewModel, 10)
+            ]
+        };
 }

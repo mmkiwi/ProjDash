@@ -67,6 +67,8 @@ public partial class App : Application
             MainWindowViewModel vm = new();
             _mainWindow.OnNext(new MainWindow() { ViewModel = vm });
 
+            Locator.CurrentMutable.RegisterConstant(vm);
+
             vm.WhenAnyValue(vm => vm.Settings).Select(GetMenuItems).ObserveOn(RxApp.MainThreadScheduler)
                 .Subscribe(_menu);
         }
@@ -77,7 +79,7 @@ public partial class App : Application
 
     private NativeMenu? GetMenuItems(SettingsRoot settings)
     {
-        if (settings is not { Projects.Count: > 0 })
+        if (settings is not { Projects.Length: > 0 })
             return null;
         NativeMenu menu = new();
         foreach (var project in settings.Projects)
@@ -101,7 +103,7 @@ public partial class App : Application
         NativeMenu subMenu = new();
         foreach (var link in project.Links)
         {
-            Bitmap? bitmap = ImageToBitmap(conv.Convert(link.Icon, icons, link.Color));
+            Bitmap? bitmap = ImageToBitmap(conv.Convert(link.Icon, link.Color));
             NativeMenuItem submenuItem = new()
             {
                 Header = link.Name, CommandParameter = link.Uri, Command = LaunchMenuItem, Icon = bitmap
@@ -109,7 +111,7 @@ public partial class App : Application
             subMenu.Add(submenuItem);
         }
 
-        return new NativeMenuItem() { Header = project.Name, Menu = subMenu };
+        return new NativeMenuItem() { Header = project.Title, Menu = subMenu };
     }
 
     private Bitmap? ImageToBitmap(IImage? image)

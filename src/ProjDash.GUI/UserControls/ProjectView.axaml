@@ -3,11 +3,12 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:userControls="clr-namespace:MMKiwi.ProjDash.GUI.UserControls"
-             xmlns:viewModel="clr-namespace:MMKiwi.ProjDash.ViewModel;assembly=MMKiwi.ProjDash.ViewModel"
+             xmlns:model="clr-namespace:MMKiwi.ProjDash.ViewModel.Model;assembly=MMKiwi.ProjDash.ViewModel"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="200"
-             x:DataType="viewModel:ProjectViewModel"
+             x:DataType="model:Project"
              MinWidth="250"
              VerticalAlignment="Stretch"
+             Name="ParentControl"
              VerticalContentAlignment="Stretch"
              d:DataContext="{x:Static userControls:ProjectView.DesignViewModel}"
              x:Class="MMKiwi.ProjDash.GUI.UserControls.ProjectView">
@@ -16,12 +17,17 @@
             <Setter Property="Foreground" Value="{DynamicResource AccentButtonForeground}" />
         </Style>
     </UserControl.Styles>
-    <Grid Margin="4" RowDefinitions="Auto,Auto,Auto,*" VerticalAlignment="Stretch">
+    <Grid Margin="4" RowDefinitions="Auto,Auto,*" VerticalAlignment="Stretch">
+        <Grid.ContextMenu>
+            <ContextMenu>
+                <MenuItem Header="Edit" Command="{Binding #ParentControl.Edit}"/>
+                <MenuItem Header="Delete" Command="{Binding #ParentControl.Delete}"/>
+            </ContextMenu>
+        </Grid.ContextMenu>    
         <Border Background="{Binding Color, TargetNullValue={StaticResource AccentButtonBackground}}" Grid.Row="0" Grid.RowSpan="4" CornerRadius="5" />
-        <TextBlock Margin="4 4 4 2 " Grid.Row="0" Text="{Binding Name}" FontWeight="DemiBold" />
-        <TextBlock Margin="4 2" Grid.Row="1" Text="{Binding Client}" FontWeight="Light" IsVisible="{Binding Client, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-        <TextBlock Margin="4 2" Grid.Row="2" Text="{Binding ProjectNumber}" FontWeight="Light" IsVisible="{Binding ProjectNumber, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-        <ItemsControl Grid.Row="3" ItemsSource="{Binding Links}">
+        <TextBlock Margin="4 4 4 2 " Grid.Row="0" Text="{Binding Title}" FontWeight="DemiBold" />
+        <TextBlock Margin="4 2" Grid.Row="1" LineHeight="22" Name="Subtitle" />
+        <ItemsControl Grid.Row="2" ItemsSource="{Binding Links}">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                     <WrapPanel Orientation="Horizontal"/>

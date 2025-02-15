@@ -1,0 +1,49 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:converters="clr-namespace:MMKiwi.ProjDash.GUI.Converters"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             Name="ParentControl"
+             xmlns:i="https://github.com/projektanker/icons.avalonia"
+             xmlns:userControls="clr-namespace:MMKiwi.ProjDash.GUI.UserControls"
+             xmlns:iconEditors="clr-namespace:MMKiwi.ProjDash.ViewModel.IconEditors;assembly=MMKiwi.ProjDash.ViewModel"
+             x:DataType="iconEditors:MaterialIconViewModel"
+             x:Class="MMKiwi.ProjDash.GUI.UserControls.MaterialIconEditor">
+    <Grid ColumnDefinitions="*,Auto">
+        <AutoCompleteBox
+            ItemsSource="{x:Static userControls:MaterialIconEditor.IconNames}"
+            FilterMode="Contains"
+            VerticalAlignment="Center"
+            ValueMemberBinding="{Binding ShortName}"
+            Name="MaterialBox"
+            Text="{Binding Icon}">
+            <AutoCompleteBox.ItemTemplate>
+                <DataTemplate x:DataType="userControls:MaterialIconListItem">
+                    <StackPanel Orientation="Horizontal">
+                        <Image
+                            Width="24"
+                            Height="24" Margin="0 0 8 0">
+                            <Image.Source>
+                                <MultiBinding Converter="{x:Static converters:LinkIconConverter.Instance}">
+                                    <CompiledBinding Path="Icon" />
+                                </MultiBinding>
+                            </Image.Source>
+                        </Image>
+                        <TextBlock
+                            Text="{Binding ShortName}"
+                            VerticalAlignment="Center" />
+                    </StackPanel>
+                </DataTemplate>
+            </AutoCompleteBox.ItemTemplate>
+        </AutoCompleteBox>
+        <Button Grid.Column="1"
+                VerticalAlignment="Center"
+                Margin="8 0 0 0" i:Attached.Icon="mdi-information"
+                FontSize="24"
+                ToolTip.Tip="Search all available icons"
+                Command="{Binding #ParentControl.LaunchIconList}"
+                Background="{DynamicResource SystemControlBackgroundChromeWhiteBrush}"
+                 Padding="0"/>
+    </Grid>
+</UserControl>

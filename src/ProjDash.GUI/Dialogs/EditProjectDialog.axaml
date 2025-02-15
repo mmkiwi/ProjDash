@@ -1,0 +1,139 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:viewModel="clr-namespace:MMKiwi.ProjDash.ViewModel;assembly=MMKiwi.ProjDash.ViewModel"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        Width="800"
+        Height="450"
+        x:Class="MMKiwi.ProjDash.GUI.Dialogs.EditProjectDialog"
+        x:DataType="viewModel:ProjectViewModel"
+        Name="ParentWindow"
+        xmlns:i="https://github.com/projektanker/icons.avalonia"
+        xmlns:converters="clr-namespace:MMKiwi.ProjDash.GUI.Converters"
+        xmlns:userControls="clr-namespace:MMKiwi.ProjDash.GUI.UserControls"
+        Title="EditProjectDialog">
+    <Grid ColumnDefinitions="Auto,Auto,*" RowDefinitions="*,Auto" Margin="4" >
+        <ScrollViewer>
+            <Grid Margin="4" RowDefinitions="Auto,Auto,Auto,Auto,*" ColumnDefinitions="Auto,Auto,*,Auto">
+                <Label
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    VerticalAlignment="Center"
+                    Margin="8,8,4,4"
+                    Content="Title"
+                    Target="TitleBox" />
+                <TextBox
+                    Margin="4,8,8,4"
+                    Grid.Row="0"
+                    Grid.Column="1"
+                    Grid.ColumnSpan="3"
+                    Text="{Binding Title}"
+                    Name="TitleBox" />
+                <Label
+                    Grid.Row="1"
+                    Grid.Column="0"
+                    VerticalAlignment="Center"
+                    Margin="8,8,4,4"
+                    Content="Subtitle"
+                    Target="SubitleBox" />
+                <TextBox
+                    Margin="4,8,8,4"
+                    Grid.Row="1"
+                    TextWrapping="WrapWithOverflow"
+                    Grid.Column="1"
+                    Grid.ColumnSpan="3"
+                    Text="{Binding Subtitle}"
+                    Name="SubitleBox" />
+                <Label
+                    Grid.Row="2"
+                    Grid.Column="0"
+                    VerticalAlignment="Center"
+                    Margin="8,8,4,4"
+                    Content="Color"
+                    Target="ColorPicker" />
+                <ColorPicker
+                    Margin="4,8,8,4"
+                    Grid.Row="2"
+                    Grid.Column="1"
+                    Color="{Binding Color, Converter={x:Static converters:ColorConverter.Instance}}"
+                    HorizontalAlignment="Left"
+                    Name="ColorPicker" />
+                <Button
+                    Margin="4,8,8,4"
+                    Grid.Row="2"
+                    Grid.Column="2"
+                    i:Attached.Icon="mdi-close"
+                    Command="{Binding #ParentWindow.ClearColor}"
+                    Background="{StaticResource SystemRegionBrush}"
+                    HorizontalAlignment="Left" />
+                <Label
+                    Grid.Row="3"
+                    Grid.Column="0"
+                    Grid.ColumnSpan="3"
+                    VerticalAlignment="Center"
+                    Margin="8 4 8 4"
+                    Content="Icons"
+                    FontWeight="SemiBold" />
+                <StackPanel Grid.Row="4" Grid.Column="3">
+                    <Button
+                        Margin="4 4 8 4 "
+                        i:Attached.Icon="mdi-plus"
+                        Command="{Binding AddLink}"
+                        Padding="2"
+                        FontSize="20" />
+                    <Button
+                        Margin="4 4 8 4 "
+                        i:Attached.Icon="mdi-arrow-up"
+                        Command="{Binding MoveLinkUp}"
+                        Padding="2"
+                        FontSize="20" />
+                    <Button
+                        Margin="4 4 8 4 "
+                        i:Attached.Icon="mdi-arrow-down"
+                        Command="{Binding MoveLinkDown}"
+                        Padding="2"
+                        FontSize="20" />
+                    <Button
+                        Margin="4 4 8 4 "
+                        i:Attached.Icon="mdi-minus"
+                        Command="{Binding DeleteLink}"
+                        Padding="2"
+                        FontSize="20" />
+                </StackPanel>
+                <TreeDataGrid
+                    Grid.Row="4"
+                    Grid.Column="0"
+                    CanUserSortColumns="False"
+                    Grid.ColumnSpan="3"
+                    Margin="8" Name="IconGrid" />
+            </Grid>
+        </ScrollViewer>
+        <GridSplitter
+            Grid.Row="0"
+            Grid.Column="1"
+            Background="Gray" Margin="4 0 "
+            ResizeDirection="Columns" />
+        <ContentControl
+            Margin="4" 
+            Grid.Row="0"
+            Grid.Column="2"
+            Content="{Binding SelectedLink}" />
+        <StackPanel
+            Grid.Row="1"
+            Grid.Column="0"
+            Grid.ColumnSpan="3"
+            Margin="4" 
+            HorizontalAlignment="Right"
+            Orientation="Horizontal">
+            <Button Content="Cancel"
+                    Command="{Binding #ParentWindow.Close}"
+                    Margin="8 4 4 8" />
+            <Button Content="Save"
+                    Classes="accent"
+                    IsDefault="true"
+                    Command="{Binding EditComplete}"
+                    Margin="4 4 8 8" />
+        </StackPanel>
+    </Grid>
+</Window>

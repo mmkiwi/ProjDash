@@ -1,0 +1,111 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModel="clr-namespace:MMKiwi.ProjDash.ViewModel;assembly=MMKiwi.ProjDash.ViewModel"
+             xmlns:converters="clr-namespace:MMKiwi.ProjDash.GUI.Converters"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="viewModel:ProjectLinkViewModel"
+             Name="ParentControl"
+             x:Class="MMKiwi.ProjDash.GUI.UserControls.ProjectLinkEditor">
+    <Grid ColumnDefinitions="Auto,*" Margin="4" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,*">
+        <Label
+            Grid.Row="0"
+            Grid.Column="0"
+            VerticalAlignment="Center"
+            Margin="8 8 4 4"
+            Target="IconBox"
+            Content="Icon Type" />
+        <ComboBox
+            Grid.Row="0"
+            Grid.Column="1"
+            HorizontalAlignment="Stretch"
+            Margin="4 8 8 4"
+            ItemsSource="{Binding IconTypes }"
+            SelectedValue="{Binding SelectedIcon}"
+            SelectedValueBinding="{Binding .}"
+            DisplayMemberBinding="{Binding DisplayName}"
+            Name="IconBox" />
+        <Label
+            Grid.Row="1"
+            Grid.Column="0"
+            VerticalAlignment="Center"
+            Margin="8 4 4 4"
+            Target="IconColor"
+            IsVisible="{Binding SelectedIcon.CanChangeColor, FallbackValue=false}"
+            Content="Icon Color">
+        </Label>
+        <ColorPicker
+            Grid.Row="1"
+            Grid.Column="1"
+            Margin="4 4 8 4"
+            HorizontalAlignment="Left"
+            Name="IconColor"
+            IsVisible="{Binding SelectedIcon.CanChangeColor, FallbackValue=false}"
+            Color="{Binding Color, Converter={x:Static converters:ColorConverter.Instance}}" />
+        <Label
+            Grid.Row="2"
+            Grid.Column="0"
+            VerticalAlignment="Center"
+            Target="Link"
+            Margin="8 8 4 4"
+            IsVisible="{Binding SelectedIcon, Converter={x:Static ObjectConverters.IsNotNull}}"
+            Content="Link" />
+        <TextBox
+            Grid.Row="2"
+            Grid.Column="1"
+            HorizontalAlignment="Stretch"
+            Name="Link"
+            Margin="4 8 8 4"
+            IsVisible="{Binding SelectedIcon, Converter={x:Static ObjectConverters.IsNotNull}}"
+            Text="{Binding Uri}" />
+        <Label
+            Grid.Row="3"
+            Grid.Column="0"
+            VerticalAlignment="Center"
+            Margin="8 4 4 4"
+            IsVisible="{Binding SelectedIcon, Converter={x:Static ObjectConverters.IsNotNull}}"
+            Content="{Binding SelectedIcon.FieldLabel}" />
+        <ContentControl
+            Grid.Row="3"
+            Grid.Column="1"
+            Margin="4 4 8 4"
+            IsVisible="{Binding SelectedIcon, Converter={x:Static ObjectConverters.IsNotNull}}"
+            Content="{Binding SelectedIcon}" />
+        <Label
+            Grid.Row="4"
+            Grid.Column="0"
+            VerticalAlignment="Center"
+            Margin="8 8 4 4"
+            IsVisible="{Binding SelectedIcon, Converter={x:Static ObjectConverters.IsNotNull}}"
+            Content="Link Title" />
+        <TextBox
+            Grid.Row="4"
+            Grid.Column="1"
+            HorizontalAlignment="Stretch"
+            Margin="4 8 8 4"
+            IsVisible="{Binding SelectedIcon, Converter={x:Static ObjectConverters.IsNotNull}}"
+            Text="{Binding Name}" />
+        <Label
+            Grid.Row="5"
+            Grid.Column="0"
+            Margin="8 4 4 4"
+            IsVisible="{Binding SelectedIcon, Converter={x:Static ObjectConverters.IsNotNull}}"
+            Content="Icon Preview" />
+        <Image
+            Grid.Row="5"
+            Grid.Column="1"
+            HorizontalAlignment="Left"
+            Margin="8 4"
+            Width="24"
+            IsVisible="{Binding SelectedIcon, Converter={x:Static ObjectConverters.IsNotNull}}"
+            Height="24">
+            <Image.Source>
+                <MultiBinding Converter="{x:Static converters:LinkIconConverter.Instance}">
+                    <CompiledBinding Path="SelectedIcon.IconRef" FallbackValue="{x:Null}" />
+                    <CompiledBinding Path="Color" />
+                </MultiBinding>
+            </Image.Source>
+        </Image>
+    </Grid>
+</UserControl>

@@ -10,7 +10,7 @@ using ReactiveUI;
 
 namespace MMKiwi.ProjDash.GUI.UserControls;
 
-public partial class ProjectLinkButton : ReactiveUserControl<ProjectLinkViewModel>
+public partial class ProjectLinkButton : ReactiveUserControl<ProjectLink>
 {
     public ProjectLinkButton()
     {
