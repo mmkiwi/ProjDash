@@ -1,19 +1,15 @@
-﻿using System.Collections.Frozen;
+﻿// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v.2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
 using System.Collections.Immutable;
 using System.Globalization;
-using System.Reflection;
 using System.Text.RegularExpressions;
 
 using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Data;
 using Avalonia.Data.Converters;
-using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
-using Avalonia.Platform;
-
-using DynamicData;
 
 using MMKiwi.ProjDash.GUI.Helpers;
 using MMKiwi.ProjDash.ViewModel.Model;
@@ -37,25 +33,20 @@ public partial class LinkIconConverter : IMultiValueConverter
         if (values.Any(v => v is UnsetValueType))
             return null;
 
-        switch (values)
+        return values switch
         {
-            case [IconRef icon, string color]:
-                return Convert(icon, color);
-            case [IconRef icon, null]:
-                return Convert(icon);
-            case [IconRef icon]:
-                return Convert(icon);
-            case [null]:
-            case [null, _]:
-                return Convert(null);
-            default:
-                throw new NotSupportedException();
-        }
+            [IconRef icon, string color] => Convert(icon, color),
+            [IconRef icon, null] => Convert(icon),
+            [IconRef icon] => Convert(icon),
+            [null] or [null, _] => Convert(null),
+            _ => throw new InvalidOperationException()
+        };
     }
 
     public IImage? Convert(IconRef? icon, string? color = null)
     {
-        var icons = App.Current?.MainWindow?.ViewModel?.Settings.IconImports ?? ImmutableDictionary<string,IconImport>.Empty;
+        var icons = App.Current?.MainWindow?.ViewModel?.Settings.IconImports ??
+                    ImmutableDictionary<string, IconImport>.Empty;
         IBrush? colorBrush = color is not null ? Brush.Parse(color) : null;
         return icon switch
         {
@@ -69,27 +60,24 @@ public partial class LinkIconConverter : IMultiValueConverter
 
         IconImage DefaultIcon()
         {
-            return new IconImage()
-            {
-                Value = "mdi-link", Brush = colorBrush ?? Brushes.Black
-            };
+            return new IconImage { Value = "mdi-link", Brush = colorBrush ?? Brushes.Black };
         }
     }
 
-    private IImage? GetIconImage(IconRef.MaterialIcon materialIcon, IBrush? colorBrush)
+    private static IconImage? GetIconImage(IconRef.MaterialIcon materialIcon, IBrush? colorBrush)
     {
         try
         {
-            return new IconImage() { Value = materialIcon.Reference, Brush = colorBrush ?? Brushes.Black };
+            return new IconImage { Value = materialIcon.Reference, Brush = colorBrush ?? Brushes.Black };
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             Log.Warning(ex, $"Could not load icon {materialIcon.Reference}");
             return null;
         }
     }
 
-    private Bitmap LoadBitmap(IconRef.DataUriIcon dataUriIcon)
+    private static Bitmap LoadBitmap(IconRef.DataUriIcon dataUriIcon)
     {
         var matches = DataUriRegex.Match(dataUriIcon.Reference);
 
@@ -102,8 +90,8 @@ public partial class LinkIconConverter : IMultiValueConverter
         return new Bitmap(fileStream);
     }
 
-    [GeneratedRegex(@"data:(?<type>.+?);base64,(?<data>.+)")]
-    public partial Regex DataUriRegex { get; }
-    
+    [GeneratedRegex("data:(?<type>.+?);base64,(?<data>.+)")]
+    private static partial Regex DataUriRegex { get; }
+
     public static LinkIconConverter Instance => new();
 }

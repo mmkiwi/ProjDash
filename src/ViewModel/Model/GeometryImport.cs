@@ -1,8 +1,12 @@
-﻿namespace MMKiwi.ProjDash.ViewModel.Model;
+﻿// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v.2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+namespace MMKiwi.ProjDash.ViewModel.Model;
 
 public sealed record GeometryImport
 {
     public required string Path { get; init; }
     public string? Color { get; init; } = "";
-    public bool IsForeground { get; init; } = false;
+    public bool IsForeground { get; init; }
 }

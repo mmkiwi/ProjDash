@@ -1,4 +1,8 @@
-﻿using System.Drawing;
+﻿// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v.2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+using System.Drawing;
 using System.Drawing.Imaging;
 using System.Reactive;
 using System.Reactive.Disposables;
@@ -6,7 +10,7 @@ using System.Reactive.Linq;
 
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Markup.Xaml;
+using Avalonia.Platform;
 using Avalonia.ReactiveUI;
 
 using MMKiwi.ProjDash.GUI.UserControls;
@@ -15,6 +19,7 @@ using MMKiwi.ProjDash.ViewModel;
 using ReactiveUI;
 
 using Bitmap = Avalonia.Media.Imaging.Bitmap;
+using PixelFormat = System.Drawing.Imaging.PixelFormat;
 
 namespace MMKiwi.ProjDash.GUI.Dialogs;
 
@@ -28,7 +33,7 @@ public partial class IconDialog : ReactiveWindow<IconDialogViewModel>
         }
 
         InitializeComponent();
-        
+
         ReactiveCommand<int?, Unit> closeDialog = ReactiveCommand.Create((int? result) => Close(result));
 
         this.WhenActivated(d =>
@@ -37,7 +42,6 @@ public partial class IconDialog : ReactiveWindow<IconDialogViewModel>
             ViewModel!.Cancel.InvokeCommand(closeDialog).DisposeWith(d);
         });
     }
-
 }
 
 public class IconDialogViewModel : ViewModelBase
@@ -63,7 +67,7 @@ public class IconDialogViewModel : ViewModelBase
     private string FilePath { get; }
     private int NumIcons { get; }
 
-    public Bitmap? LoadIcon(int index)
+    private Bitmap? LoadIcon(int index)
     {
         if (!OperatingSystem.IsWindowsVersionAtLeast(6, 1))
         {
@@ -76,10 +80,10 @@ public class IconDialogViewModel : ViewModelBase
         System.Drawing.Bitmap bmp = icon.ToBitmap();
         var bitmapdata = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadWrite,
             PixelFormat.Format32bppArgb);
-        Bitmap bitmap1 = new Bitmap(Avalonia.Platform.PixelFormat.Bgra8888, Avalonia.Platform.AlphaFormat.Premul,
+        Bitmap bitmap1 = new(Avalonia.Platform.PixelFormat.Bgra8888, AlphaFormat.Premul,
             bitmapdata.Scan0,
-            new Avalonia.PixelSize(bitmapdata.Width, bitmapdata.Height),
-            new Avalonia.Vector(96, 96),
+            new PixelSize(bitmapdata.Width, bitmapdata.Height),
+            new Vector(96, 96),
             bitmapdata.Stride);
         bmp.UnlockBits(bitmapdata);
         bmp.Dispose();

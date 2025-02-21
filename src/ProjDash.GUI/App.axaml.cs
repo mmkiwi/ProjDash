@@ -1,7 +1,7 @@
-using System;
-using System.Collections.Frozen;
-using System.ComponentModel;
-using System.Diagnostics;
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v.2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -25,10 +25,9 @@ using Serilog;
 
 using Splat;
 
-
 namespace MMKiwi.ProjDash.GUI;
 
-public partial class App : Application
+public class App : Application
 {
     public App()
     {
@@ -64,12 +63,13 @@ public partial class App : Application
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             _mainWindow.BindTo(desktop, lt => lt.MainWindow);
-            MainWindowViewModel vm = new();
-            _mainWindow.OnNext(new MainWindow() { ViewModel = vm });
+            MainWindowViewModel mainWindowViewModel = new();
+            _mainWindow.OnNext(new MainWindow { ViewModel = mainWindowViewModel });
 
-            Locator.CurrentMutable.RegisterConstant(vm);
+            Locator.CurrentMutable.RegisterConstant(mainWindowViewModel);
 
-            vm.WhenAnyValue(vm => vm.Settings).Select(GetMenuItems).ObserveOn(RxApp.MainThreadScheduler)
+            mainWindowViewModel.WhenAnyValue(vm => vm.Settings).Select(GetMenuItems)
+                .ObserveOn(RxApp.MainThreadScheduler)
                 .Subscribe(_menu);
         }
 
@@ -81,9 +81,9 @@ public partial class App : Application
     {
         if (settings is not { Projects.Length: > 0 })
             return null;
-        NativeMenu menu = new();
+        NativeMenu menu = [];
         foreach (var project in settings.Projects)
-            menu.Add(ProjectToMenuItem(project, settings.IconImports ?? FrozenDictionary<string, IconImport>.Empty));
+            menu.Add(ProjectToMenuItem(project));
         return menu;
     }
 
@@ -97,11 +97,11 @@ public partial class App : Application
         }).ConfigureAwait(true);
     }
 
-    private NativeMenuItem ProjectToMenuItem(Project project, IReadOnlyDictionary<string, IconImport> icons)
+    private NativeMenuItem ProjectToMenuItem(Project project)
     {
         LinkIconConverter conv = new();
-        NativeMenu subMenu = new();
-        foreach (var link in project.Links)
+        NativeMenu subMenu = [];
+        foreach (ProjectLink link in project.Links)
         {
             Bitmap? bitmap = ImageToBitmap(conv.Convert(link.Icon, link.Color));
             NativeMenuItem submenuItem = new()
@@ -111,33 +111,28 @@ public partial class App : Application
             subMenu.Add(submenuItem);
         }
 
-        return new NativeMenuItem() { Header = project.Title, Menu = subMenu };
+        return new NativeMenuItem { Header = project.Title, Menu = subMenu };
     }
 
-    private Bitmap? ImageToBitmap(IImage? image)
+    private static Bitmap? ImageToBitmap(IImage? image)
     {
         if (image is null)
             return null;
 
         var pixelSize = new PixelSize((int)image.Size.Width, (int)image.Size.Height);
-        Bitmap? returnImage = null;
-        using (MemoryStream memoryStream = new())
+        using MemoryStream memoryStream = new();
+        using (RenderTargetBitmap bitmap = new(pixelSize, new Vector(16, 16)))
         {
-            using (RenderTargetBitmap bitmap = new(pixelSize, new Vector(16, 16)))
+            using (DrawingContext ctx = bitmap.CreateDrawingContext())
             {
-                using (DrawingContext ctx = bitmap.CreateDrawingContext())
-                {
-                    image.Draw(ctx, new Rect(new Point(0, 0), image.Size), new Rect(new Point(0, 0), bitmap.Size));
-                }
-
-                bitmap.Save(memoryStream);
+                image.Draw(ctx, new Rect(new Point(0, 0), image.Size), new Rect(new Point(0, 0), bitmap.Size));
             }
 
-            memoryStream.Seek(0, SeekOrigin.Begin);
-            returnImage = new Bitmap(memoryStream);
+            bitmap.Save(memoryStream);
         }
 
-        return returnImage;
+        memoryStream.Seek(0, SeekOrigin.Begin);
+        return new Bitmap(memoryStream);
     }
 
     public ReactiveCommand<Unit, Unit> HideCommand { get; }
@@ -200,15 +195,15 @@ public partial class App : Application
             switch (MainWindow.IsVisible, isTop)
             {
                 case (true, true):
-                    Log.Verbose($"Hiding, window is visible and on top");
+                    Log.Verbose("Hiding, window is visible and on top");
                     MainWindow.Hide();
                     break;
                 case (true, false):
-                    Log.Verbose($"Activating, window is visible and obscured");
+                    Log.Verbose("Activating, window is visible and obscured");
                     MainWindow.Activate();
                     break;
                 case (false, _):
-                    Log.Verbose($"Activating, window is visible and obscured");
+                    Log.Verbose("Activating, window is visible and obscured");
                     MainWindow.Show();
                     break;
             }

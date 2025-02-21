@@ -1,3 +1,7 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v.2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
 using System.Collections.Frozen;
 using System.Diagnostics;
 using System.Reactive;
@@ -10,6 +14,7 @@ using Avalonia.Controls;
 using Avalonia.ReactiveUI;
 using Avalonia.Threading;
 
+using MMKiwi.ProjDash.GUI.Dialogs;
 using MMKiwi.ProjDash.GUI.UserControls;
 using MMKiwi.ProjDash.ViewModel;
 using MMKiwi.ProjDash.ViewModel.Model;
@@ -35,29 +40,40 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IEnableLo
 
     public MainWindow()
     {
-        PositionChanged += (s, e) => UpdatePosition(e.Point.X, e.Point.Y);
-        SizeChanged += (s, e) => UpdateSize(e.NewSize.Width, e.NewSize.Height);
+        PositionChanged += (_, e) => UpdatePosition(e.Point.X, e.Point.Y);
+        SizeChanged += (_, e) => UpdateSize(e.NewSize.Width, e.NewSize.Height);
         Log.Verbose("MainWindow");
         if (!Design.IsDesignMode)
         {
             Shutdown.InvokeCommand((Application.Current as App)?.ExitCommand);
             EditSettingsCommand = ReactiveCommand.CreateFromTask(EditSettingsAsync);
             NewSettingsCommand = ReactiveCommand.CreateFromTask(NewSettingsAsync);
+            Add = ReactiveCommand.CreateFromTask(AddAsync);
+            
+            
+            
+
             ShowLogsCommand = ReactiveCommand.CreateFromTask(async () =>
             {
                 string? path = Path.GetDirectoryName(MainWindowViewModel.LogPath);
                 if (Directory.Exists(path))
-                    await Launcher.LaunchUriAsync(new(path)).ConfigureAwait(false);
+                    await Launcher.LaunchUriAsync(new Uri(path)).ConfigureAwait(false);
             });
         }
         else
         {
             EditSettingsCommand =
-                ReactiveCommand.Create(() => this.Log().Info($"Editing {MainWindowViewModel.SettingsPath}"));
+                ReactiveCommand.Create(static () => Log.Information($"Editing {MainWindowViewModel.SettingsPath}"));
             NewSettingsCommand =
-                ReactiveCommand.Create(() => this.Log().Info($"New {MainWindowViewModel.SettingsPath}"));
+                ReactiveCommand.Create(static () => Log.Information($"New {MainWindowViewModel.SettingsPath}"));
             ShowLogsCommand =
-                ReactiveCommand.Create(() => this.Log().Info($"Showing Logs"));
+                ReactiveCommand.Create(static () => Log.Information("Showing Logs"));
+            Add =
+                ReactiveCommand.Create<ProjectViewModel?>(static () =>
+                {
+                    Log.Information("Showing Logs");
+                    return null;
+                });
             ViewModel = new DesignMainWindowViewModel();
         }
 
@@ -75,20 +91,25 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IEnableLo
                 Height = settings.Height.Value;
             }
 
-            if (settings is { Left: >= -10 and < 0, Top: >= -10 and < 0 })
+            switch (settings)
             {
-                // maximized
-                WindowState = WindowState.Maximized;
-            }
-            else if (settings is { Top: not null, Left: not null })
-            {
-                int top = Math.Max(-8, settings.Top.Value);
-                int left = Math.Max(-8, settings.Left.Value);
-                Position = new PixelPoint(left, top);
+                case { Left: >= -10 and < 0, Top: >= -10 and < 0 }:
+                    // maximized
+                    WindowState = WindowState.Maximized;
+                    break;
+                case { Top: not null, Left: not null }:
+                    {
+                        int top = Math.Max(-8, settings.Top.Value);
+                        int left = Math.Max(-8, settings.Left.Value);
+                        Position = new PixelPoint(left, top);
+                        break;
+                    }
             }
 
             _isLoaded = true;
 
+            Add.Where(res => res is not null).InvokeCommand(ViewModel!.AddProject!).DisposeWith(d);
+            
             if (!Design.IsDesignMode)
             {
                 // Hook the message to show a window 
@@ -97,35 +118,47 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IEnableLo
                     Log.Information("Bring to front message recieved");
                     App.Current!.Show();
                 }).DisposeWith(d);
+
                 Observable.Return(Unit.Default).InvokeCommand(ViewModel, vm => vm.RefreshSettings);
             }
         });
     }
 
+    public ReactiveCommand<Unit, ProjectViewModel?> Add { get; }
+
+    private async Task<ProjectViewModel?> AddAsync()
+    {
+        EditProjectDialog dialog = new()
+        {
+            ViewModel = new ProjectViewModel(new Project { Title = "New Project", Links = [] })
+        };
+        return await dialog.ShowDialog<ProjectViewModel?>((Window)TopLevel.GetTopLevel(this)!).ConfigureAwait(true);
+    }
+
     private void UpdateSize(double width, double height)
     {
         if (ViewModel is not null && _isLoaded)
-            ViewModel.WindowSettings = ViewModel.WindowSettings with { Width = width, Height = height, };
+            ViewModel.WindowSettings = ViewModel.WindowSettings with { Width = width, Height = height };
     }
 
     private void UpdatePosition(int x, int y)
     {
         if (ViewModel is not null && _isLoaded)
-            ViewModel.WindowSettings = ViewModel.WindowSettings with { Top = y, Left = x, };
+            ViewModel.WindowSettings = ViewModel.WindowSettings with { Top = y, Left = x };
     }
 
-    private bool _isLoaded = false;
+    private bool _isLoaded;
 
 
     private async Task NewSettingsAsync()
     {
         Debug.Assert(ViewModel is not null);
-        await ViewModel.SaveSchemaAsync().ConfigureAwait(false);
+        await MainWindowViewModel.SaveSchemaAsync().ConfigureAwait(false);
         if (File.Exists(MainWindowViewModel.SettingsPath))
         {
             ErrorDialog dialog = new()
             {
-                ViewModel = new ErrorDialogViewModel()
+                ViewModel = new ErrorDialogViewModel
                 {
                     MainMessage = $"The file {MainWindowViewModel.SettingsPath} already exists. Overwrite?",
                     PrimaryButtonText = "No",
@@ -144,39 +177,41 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IEnableLo
         var fileStream = File.Open(MainWindowViewModel.SettingsPath, FileMode.Create, FileAccess.Write, FileShare.Read);
         await using (fileStream.ConfigureAwait(false))
         {
-            var blankRoot = new SettingsRoot()
+            var blankRoot = new SettingsRoot
             {
                 Projects =
                 [
-                    new Project()
+                    new Project
                     {
                         Title = "Name",
                         Subtitles = ["Client", "000000"],
                         Color = null,
                         Links =
                         [
-                            new ProjectLink()
+                            new ProjectLink
                             {
                                 Name = "Link",
                                 Icon = IconRef.Material("mdi-folder"),
-                                Uri = new("https://example.com")
+                                Uri = new Uri("https://example.com")
                             },
-                            new ProjectLink()
+                            new ProjectLink
                             {
-                                Name = "Link", Icon = IconRef.Import("rectangle"), Uri = new("https://example.com")
+                                Name = "Link",
+                                Icon = IconRef.Import("rectangle"),
+                                Uri = new Uri("https://example.com")
                             }
                         ]
                     }
                 ],
-                IconImports = new Dictionary<string, IconImport>()
+                IconImports = new Dictionary<string, IconImport>
                 {
                     {
-                        "rectangle", new IconImport()
+                        "rectangle", new IconImport
                         {
                             ClipBounds = "0.0,0.0,256.0,256.0",
                             Geometry =
                             [
-                                new GeometryImport()
+                                new GeometryImport
                                 {
                                     Path = "M 0,0 H 256 V 256 H 0 Z", Color = "yellow", IsForeground = true
                                 }
@@ -189,7 +224,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IEnableLo
             var blankDoc = JsonSerializer.SerializeToNode(blankRoot, SettingsSerializer.Default.SettingsRoot)!;
             blankDoc["$schema"] = "Settings.schema.json";
 
-            Utf8JsonWriter writer = new(fileStream, new JsonWriterOptions() { Indented = true });
+            Utf8JsonWriter writer = new(fileStream, new JsonWriterOptions { Indented = true });
             await using (writer.ConfigureAwait(false))
             {
                 blankDoc.WriteTo(writer);
@@ -206,14 +241,14 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IEnableLo
     {
         try
         {
-            await ViewModel!.SaveSchemaAsync().ConfigureAwait(true);
+            await MainWindowViewModel.SaveSchemaAsync().ConfigureAwait(true);
             await this.Launcher.LaunchUriAsync(new Uri(MainWindowViewModel.SettingsPath)).ConfigureAwait(true);
         }
         catch (Exception ex)
         {
             ErrorDialog dialog = new()
             {
-                ViewModel = new ErrorDialogViewModel()
+                ViewModel = new ErrorDialogViewModel
                 {
                     MainMessage = $"Could not open {MainWindowViewModel.SettingsPath}",
                     PrimaryButtonText = "OK",
@@ -243,24 +278,26 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IEnableLo
 public class DesignMainWindowViewModel : MainWindowViewModel
 {
     public override SettingsRoot Settings =>
-        new SettingsRoot
+        new()
         {
             Projects =
             [
-                new Project()
+                new Project
                 {
                     Title = "Name",
                     Subtitles = ["", null!],
                     Color = null,
                     Links =
                     [
-                        new ProjectLink()
+                        new ProjectLink
                         {
-                            Name = "Link", Icon = IconRef.Material("mdi-folder"), Uri = new("https://example.com")
+                            Name = "Link",
+                            Icon = IconRef.Material("mdi-folder"),
+                            Uri = new Uri("https://example.com")
                         },
-                        new ProjectLink()
+                        new ProjectLink
                         {
-                            Name = "Link", Icon = IconRef.Import("rectangle"), Uri = new("https://example.com")
+                            Name = "Link", Icon = IconRef.Import("rectangle"), Uri = new Uri("https://example.com")
                         }
                     ]
                 },

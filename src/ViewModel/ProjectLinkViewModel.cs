@@ -1,5 +1,9 @@
-﻿using System.Collections.Frozen;
+﻿// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v.2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 
 using MMKiwi.ProjDash.ViewModel.IconEditors;
 using MMKiwi.ProjDash.ViewModel.Model;
@@ -13,7 +17,7 @@ using Splat;
 
 namespace MMKiwi.ProjDash.ViewModel;
 
-public sealed class ProjectLinkViewModel : ViewModelBase, IValidatableViewModel
+public sealed class ProjectLinkViewModel : ViewModelBase
 {
     public string? Name { get; set => this.RaiseAndSetIfChanged(ref field, value); }
     public string? Uri { get; set => this.RaiseAndSetIfChanged(ref field, value); }
@@ -42,18 +46,18 @@ public sealed class ProjectLinkViewModel : ViewModelBase, IValidatableViewModel
         VectorIconViewModel? vector = null;
         if (Locator.Current.GetService<MainWindowViewModel>()?.Settings.IconImports is { Count: > 0 } iconKeys)
         {
-            vector = new(projectLink?.Icon as IconRef.ImportIcon, iconKeys.Keys);
+            vector = new VectorIconViewModel(projectLink?.Icon as IconRef.ImportIcon, iconKeys.Keys);
             IconTypes = [material, file, vector];
         }
-        else 
+        else
             IconTypes = [material, file];
 
 
         SelectedIcon = projectLink?.Icon switch
         {
-            IconRef.DataUriIcon dataUriIcon => file,
-            IconRef.ImportIcon importIcon => vector,
-            IconRef.MaterialIcon materialIcon => material,
+            IconRef.DataUriIcon => file,
+            IconRef.ImportIcon => vector,
+            IconRef.MaterialIcon => material,
             _ => null
         };
 
@@ -62,11 +66,15 @@ public sealed class ProjectLinkViewModel : ViewModelBase, IValidatableViewModel
         this.WhenActivated(d =>
         {
             this.ValidationRule(vm => vm.Uri,
-                uri => System.Uri.TryCreate(uri, UriKind.Absolute, out _),
+                static uri => !string.IsNullOrEmpty(uri) && System.Uri.TryCreate(uri, UriKind.Absolute, out _),
                 "Link must be a valid website or file path.").DisposeWith(d);
             this.ValidationRule(vm => vm.Name,
-                name => !string.IsNullOrWhiteSpace(name),
+                static name => !string.IsNullOrWhiteSpace(name),
                 "Please enter a name.").DisposeWith(d);
+            this.ValidationRule(
+                this.WhenAnyValue(vm => vm.SelectedIcon)
+                    .SelectMany(static si => si is null ? Observable.Return(false) : si.IsValid()),
+                "Please select a valid icon.").DisposeWith(d);
         });
     }
 
@@ -74,11 +82,6 @@ public sealed class ProjectLinkViewModel : ViewModelBase, IValidatableViewModel
     {
         if (Name is null || Uri is null)
             return null;
-        return new ProjectLink()
-        {
-            Name = Name, Uri = new(Uri), Icon = SelectedIcon?.IconRef, Color = Color,
-        };
+        return new ProjectLink { Name = Name, Uri = new Uri(Uri), Icon = SelectedIcon?.IconRef, Color = Color };
     }
-
-    public IValidationContext ValidationContext { get; } = new ValidationContext();
 }

@@ -1,3 +1,7 @@
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
+
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -57,7 +61,7 @@
                     <MenuItem
                         Header="Refresh"
                         HotKey="Ctrl+R"
-                        Command="{Binding RefreshSettings}" >
+                        Command="{Binding RefreshSettings}">
                         <MenuItem.Icon>
                             <i:Icon Value="mdi-refresh" />
                         </MenuItem.Icon>
@@ -112,6 +116,11 @@
             Padding="2"
             Command="{Binding RefreshSettings}" />
         <ScrollViewer Grid.Column="0" Grid.ColumnSpan="4" Grid.Row="1" Margin="8">
+            <ScrollViewer.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Add Project" Command="{Binding #ParentWindow.Add}" />
+                </ContextMenu>
+            </ScrollViewer.ContextMenu>
             <ItemsControl ItemsSource="{Binding Settings.Projects}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>

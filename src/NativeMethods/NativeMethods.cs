@@ -1,4 +1,6 @@
-﻿using System.Runtime.CompilerServices;
+﻿// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v.2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.WindowsAndMessaging;
@@ -9,9 +11,7 @@ using static Windows.Win32.PInvoke;
 
 namespace MMKiwi.ProjDash.Native;
 
-
-
-public static unsafe partial class NativeMethods
+public static unsafe class NativeMethods
 {
     public static bool IsWindowOnTop(nint hWndPtr)
     {
@@ -21,20 +21,18 @@ public static unsafe partial class NativeMethods
         }
 
         HWND hWnd = new(hWndPtr);
-        if(!GetWindowRect(hWnd, out RECT windowRect))
+        if (!GetWindowRect(hWnd, out RECT windowRect))
             return false;
-        
-        HWND hChildWnd = hWnd;
 
-        HWND topWnd = GetWindow(hChildWnd, GET_WINDOW_CMD.GW_HWNDPREV);
+        HWND topWnd = GetWindow(hWnd, GET_WINDOW_CMD.GW_HWNDPREV);
         Span<char> windowTitle = stackalloc char[20];
         do
         {
             GetWindowRect(topWnd, out RECT topWndRect);
 
-            int length = 0;
+            const int length = 0;
             fixed (char* windowTitlePtr = windowTitle)
-                GetWindowText(topWnd, new(windowTitlePtr), windowTitle.Length);
+                GetWindowText(topWnd, new PWSTR(windowTitlePtr), windowTitle.Length);
 
             string windowTitleStr = new(windowTitle[..length]);
 

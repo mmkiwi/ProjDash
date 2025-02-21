@@ -1,10 +1,13 @@
-﻿using System.Reactive;
+﻿// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v.2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+using System.Collections.Frozen;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Reactive.Subjects;
 using System.Text.Json;
 using System.Text.Json.Schema;
-using System.Windows.Input;
 
 using MMKiwi.ProjDash.ViewModel.Model;
 
@@ -14,7 +17,7 @@ using Splat;
 
 namespace MMKiwi.ProjDash.ViewModel;
 
-public partial class MainWindowViewModel : ViewModelBase, IEnableLogger
+public class MainWindowViewModel : ViewModelBase
 {
     public MainWindowViewModel()
     {
@@ -27,6 +30,9 @@ public partial class MainWindowViewModel : ViewModelBase, IEnableLogger
         _settings = RefreshSettings
             .ToProperty(this, v => v.Settings);
         EditComplete = ReactiveCommand.CreateFromTask<ProjectViewModel>(UpdateProjectAsync);
+
+        AddProject = ReactiveCommand.CreateFromTask<ProjectViewModel>(AddProjectAsync);
+        DeleteProject = ReactiveCommand.CreateFromTask<Project?>(DeleteProjectImpl);
 
         this.WhenActivated(d =>
         {
@@ -43,10 +49,8 @@ public partial class MainWindowViewModel : ViewModelBase, IEnableLogger
         try
         {
             using var wndSettingsStream = File.OpenRead(WindowSettingsPath);
-            {
-                return JsonSerializer.Deserialize<WindowSettings>(wndSettingsStream,
-                    SettingsSerializer.Default.WindowSettings);
-            }
+            return JsonSerializer.Deserialize(wndSettingsStream,
+                SettingsSerializer.Default.WindowSettings);
         }
         catch (Exception ex)
         {
@@ -90,7 +94,7 @@ public partial class MainWindowViewModel : ViewModelBase, IEnableLogger
             var wndSettingsStream = File.Open(WindowSettingsPath, FileMode.Create);
             await using (wndSettingsStream.ConfigureAwait(false))
             {
-                await JsonSerializer.SerializeAsync<WindowSettings>(wndSettingsStream, settings,
+                await JsonSerializer.SerializeAsync(wndSettingsStream, settings,
                     SettingsSerializer.Default.WindowSettings).ConfigureAwait(false);
             }
         }
@@ -105,6 +109,10 @@ public partial class MainWindowViewModel : ViewModelBase, IEnableLogger
         try
         {
             this.Log().Info($"Trying to load {SettingsPath}");
+            if (!File.Exists(SettingsPath))
+            {
+                await SaveSettings(new SettingsRoot() { Projects = [] }).ConfigureAwait(false);
+            }
             var settingsStream = File.OpenRead(SettingsPath);
             await using (settingsStream.ConfigureAwait(false))
             {
@@ -115,7 +123,7 @@ public partial class MainWindowViewModel : ViewModelBase, IEnableLogger
         catch (Exception ex)
         {
             this.Log().Warn(ex, "Error while loading settings");
-            await ErrorDialog.Handle(new ErrorDialogViewModel()
+            await ErrorDialog.Handle(new ErrorDialogViewModel
             {
                 Exception = ex,
                 MainMessage = $"Could not load settings from {SettingsPath}",
@@ -130,26 +138,61 @@ public partial class MainWindowViewModel : ViewModelBase, IEnableLogger
     public virtual SettingsRoot Settings => _settings.Value;
     public ReactiveCommand<ProjectViewModel, Unit> EditComplete { get; }
 
+    public ReactiveCommand<ProjectViewModel, Unit> AddProject { get; }
+    public ReactiveCommand<Project?, Unit> DeleteProject { get; }
+
     private async Task UpdateProjectAsync(ProjectViewModel newProject)
     {
-        var newSettings = Settings with { Projects = Settings.Projects.Replace(newProject.OriginalProject, newProject.ToProject()) };
-        var jsonStream = File.Open(SettingsPath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read);
-        await using (jsonStream.ConfigureAwait(false))
+        var newSettings = Settings with
         {
-            await JsonSerializer.SerializeAsync(jsonStream, newSettings, SettingsSerializer.Default.SettingsRoot).ConfigureAwait(false);
-        }
+            Projects = Settings.Projects.Replace(newProject.OriginalProject, newProject.ToProject())
+        };
+        await SaveSettings(newSettings).ConfigureAwait(false);
 
         RefreshSettings.Execute().Subscribe();
     }
-    
-    public async Task SaveSchemaAsync()
+
+    private static async Task SaveSettings(SettingsRoot newSettings)
+    {
+        var jsonStream = File.Open(SettingsPath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read);
+        await using (jsonStream.ConfigureAwait(false))
+        {
+            await JsonSerializer.SerializeAsync(jsonStream, newSettings, SettingsSerializer.Default.SettingsRoot)
+                .ConfigureAwait(false);
+        }
+    }
+
+    private async Task AddProjectAsync(ProjectViewModel newProject)
+    {
+        var newSettings = Settings with { Projects = Settings.Projects.Add(newProject.ToProject()) };
+        
+        await SaveSettings(newSettings).ConfigureAwait(false);
+
+        RefreshSettings.Execute().Subscribe();
+    }
+
+    private async Task DeleteProjectImpl(Project? project)
+    {
+        if (project is null)
+            return;
+        var newSettings = Settings with { Projects = Settings.Projects.Remove(project) };
+
+        await SaveSettings(newSettings).ConfigureAwait(false);
+
+        RefreshSettings.Execute().Subscribe();
+    }
+
+    public static async Task SaveSchemaAsync()
     {
         var schemaFile = File.OpenWrite(SchemaPath);
         await using (schemaFile.ConfigureAwait(false))
         {
-            using Utf8JsonWriter writer = new(schemaFile);
-            var schema = SettingsSerializer.Default.SettingsRoot.GetJsonSchemaAsNode();
-            schema.WriteTo(writer);
+            Utf8JsonWriter writer = new(schemaFile);
+            await using (writer.ConfigureAwait(false))
+            {
+                var schema = SettingsSerializer.Default.SettingsRoot.GetJsonSchemaAsNode();
+                schema.WriteTo(writer);
+            }
         }
     }
 }
@@ -167,5 +210,5 @@ public record ErrorDialogViewModel : ReactiveRecord
 public enum ErrorDialogResult
 {
     Primary,
-    Secondary,
+    Secondary
 }

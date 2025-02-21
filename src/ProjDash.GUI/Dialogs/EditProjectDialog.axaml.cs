@@ -1,6 +1,7 @@
-﻿using System.Collections.Frozen;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
+﻿// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v.2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -10,18 +11,16 @@ using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Selection;
 using Avalonia.Controls.Templates;
-using Avalonia.Markup.Xaml;
+using Avalonia.Media;
 using Avalonia.ReactiveUI;
-
-using DynamicData.Binding;
-using DynamicData;
 
 using MMKiwi.ProjDash.GUI.Converters;
 using MMKiwi.ProjDash.GUI.UserControls;
 using MMKiwi.ProjDash.ViewModel;
-using MMKiwi.ProjDash.ViewModel.Model;
 
 using ReactiveUI;
+
+using ObservableExtensions = System.ObservableExtensions;
 
 namespace MMKiwi.ProjDash.GUI.Dialogs;
 
@@ -30,7 +29,7 @@ public partial class EditProjectDialog : ReactiveWindow<ProjectViewModel>
     public EditProjectDialog()
     {
         if (Design.IsDesignMode)
-            ViewModel = new ProjectViewModel(Guid.CreateVersion7(), ProjectView.DesignViewModel);
+            ViewModel = new ProjectViewModel(ProjectView.DesignViewModel);
 
         ClearColor = ReactiveCommand.Create(() => { ViewModel!.Color = null; });
 
@@ -43,9 +42,17 @@ public partial class EditProjectDialog : ReactiveWindow<ProjectViewModel>
                 Columns =
                 {
                     new TemplateColumn<ProjectLinkViewModel>
-                    ("Icon", new FuncDataTemplate<ProjectLinkViewModel?>((a, e) =>
+                    ("", new FuncDataTemplate<ProjectLinkViewModel?>((a, _) => new Projektanker.Icons.Avalonia.Icon()
                     {
-                        var image = new Image() { MaxWidth = 20, MaxHeight = 20 };
+                        Value = "mdi-exclamation-thick",
+                        Foreground = Brushes.Red,
+                        [ToolTip.TipProperty] = "This link has errors that must be fixed.",
+                        [!IsVisibleProperty] = a is null ? Observable.Return(false).ToBinding() : a.ValidationContext.Valid.Select(v=>!v).ToBinding(),
+                    })),
+                    new TemplateColumn<ProjectLinkViewModel>
+                    ("Icon", new FuncDataTemplate<ProjectLinkViewModel?>((a, _) =>
+                    {
+                        var image = new Image { MaxWidth = 20, MaxHeight = 20 };
                         var imageObs = a.WhenAnyValue(vm => vm.SelectedIcon!.IconRef, vm => vm.Color)
                             .Select((i, _) =>
                                 i.Item1 is null ? null : LinkIconConverter.Instance.Convert(i.Item1, i.Item2));
@@ -55,17 +62,17 @@ public partial class EditProjectDialog : ReactiveWindow<ProjectViewModel>
                     new TextColumn<ProjectLinkViewModel, string>
                         ("Name", x => x.Name),
                     new TextColumn<ProjectLinkViewModel, string>
-                        ("Link", x => x.Uri),
-                },
+                        ("Link", x => x.Uri)
+                }
             };
             IconGrid.Source = linkSource;
             linkSource.DisposeWith(d);
             linkSource.RowSelection!.SelectionChanged += UpdateSelection;
 
-            ViewModel.MoveLinkUp.Subscribe(si => linkSource.RowSelection.Select(si)).DisposeWith(d);
-            ViewModel.MoveLinkDown.Subscribe(si => linkSource.RowSelection.Select(si)).DisposeWith(d);
+            ObservableExtensions.Subscribe(ViewModel.MoveLinkUp, si => linkSource.RowSelection.Select(si)).DisposeWith(d);
+            ObservableExtensions.Subscribe(ViewModel.MoveLinkDown, si => linkSource.RowSelection.Select(si)).DisposeWith(d);
 
-            ViewModel.EditComplete.Subscribe(Close).DisposeWith(d);
+            ObservableExtensions.Subscribe(ViewModel.EditComplete, Close).DisposeWith(d);
         });
     }
 
@@ -79,6 +86,4 @@ public partial class EditProjectDialog : ReactiveWindow<ProjectViewModel>
     }
 
     public ReactiveCommand<Unit, Unit> ClearColor { get; }
-
-
 }

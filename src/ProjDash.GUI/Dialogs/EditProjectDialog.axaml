@@ -1,9 +1,12 @@
-﻿<Window xmlns="https://github.com/avaloniaui"
+﻿<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
+<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:viewModel="clr-namespace:MMKiwi.ProjDash.ViewModel;assembly=MMKiwi.ProjDash.ViewModel"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        mc:Ignorable="d" d:DesignWidth="670" d:DesignHeight="400"
         Width="800"
         Height="450"
         x:Class="MMKiwi.ProjDash.GUI.Dialogs.EditProjectDialog"
@@ -11,9 +14,16 @@
         Name="ParentWindow"
         xmlns:i="https://github.com/projektanker/icons.avalonia"
         xmlns:converters="clr-namespace:MMKiwi.ProjDash.GUI.Converters"
-        xmlns:userControls="clr-namespace:MMKiwi.ProjDash.GUI.UserControls"
+        SizeToContent="WidthAndHeight"
+        MinWidth="670"
+        MinHeight="400"
         Title="EditProjectDialog">
-    <Grid ColumnDefinitions="Auto,Auto,*" RowDefinitions="*,Auto" Margin="4" >
+    <Grid RowDefinitions="*,Auto" Margin="4">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" MinWidth="350" />
+            <ColumnDefinition Width="12" />
+            <ColumnDefinition Width="325" MinWidth="300" />
+        </Grid.ColumnDefinitions>
         <ScrollViewer>
             <Grid Margin="4" RowDefinitions="Auto,Auto,Auto,Auto,*" ColumnDefinitions="Auto,Auto,*,Auto">
                 <Label
@@ -43,6 +53,7 @@
                     TextWrapping="WrapWithOverflow"
                     Grid.Column="1"
                     Grid.ColumnSpan="3"
+                    AcceptsReturn="True"
                     Text="{Binding Subtitle}"
                     Name="SubitleBox" />
                 <Label
@@ -112,10 +123,11 @@
         <GridSplitter
             Grid.Row="0"
             Grid.Column="1"
+            HorizontalAlignment="Stretch"
             Background="Gray" Margin="4 0 "
             ResizeDirection="Columns" />
         <ContentControl
-            Margin="4" 
+            Margin="4"
             Grid.Row="0"
             Grid.Column="2"
             Content="{Binding SelectedLink}" />
@@ -123,7 +135,7 @@
             Grid.Row="1"
             Grid.Column="0"
             Grid.ColumnSpan="3"
-            Margin="4" 
+            Margin="4"
             HorizontalAlignment="Right"
             Orientation="Horizontal">
             <Button Content="Cancel"

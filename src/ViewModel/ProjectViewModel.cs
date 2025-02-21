@@ -1,4 +1,8 @@
-﻿using System.Collections.ObjectModel;
+﻿// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v.2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Reactive;
 using System.Reactive.Disposables;
@@ -9,24 +13,31 @@ using DynamicData;
 using MMKiwi.ProjDash.ViewModel.Model;
 
 using ReactiveUI;
+using ReactiveUI.Validation.Extensions;
 
 namespace MMKiwi.ProjDash.ViewModel;
 
 public sealed class ProjectViewModel : ViewModelBase
 {
-    public ProjectViewModel(Guid id, Project project)
+    public ProjectViewModel(Project project)
     {
         OriginalProject = project;
-        Id = id;
         Title = project.Title;
-        Subtitle = string.Join(Environment.NewLine, project.Subtitles);
+        Subtitle = string.Join(Environment.NewLine, project.Subtitles.IsDefault ? [] : project.Subtitles);
         Color = project.Color;
         _links.AddRange(project.Links.Select(p => new ProjectLinkViewModel(p)));
 
-        EditComplete = ReactiveCommand.Create(() => this);
-        Delete = ReactiveCommand.Create(() => this);
+        IObservable<bool> isValid = _links.Connect().AutoRefresh(link => link.ValidationContext.Valid).ToCollection()
+            .SelectMany(links => links.Select(link => link.ValidationContext.Valid)).Merge().Merge(ValidationContext.Valid);
+        
+        EditComplete = ReactiveCommand.Create(() => this, isValid);
 
-        this.WhenActivated(d => _disposable.DisposeWith(d));
+        this.WhenActivated(d =>
+        {
+            this.ValidationRule(vm => vm.Title, title => !string.IsNullOrWhiteSpace(title),
+                "A project title is required");
+            _disposable.DisposeWith(d);
+        });
 
         IObservable<bool> hasSelection = this.WhenAnyValue(x => x.SelectedLink).Select(x => x != null);
         DeleteLink = ReactiveCommand.Create(DeleteLinkImpl, hasSelection);
@@ -36,8 +47,6 @@ public sealed class ProjectViewModel : ViewModelBase
     }
 
     public Project OriginalProject { get; }
-
-    public Guid Id { get; }
 
     private readonly CompositeDisposable _disposable = new();
 
@@ -75,12 +84,15 @@ public sealed class ProjectViewModel : ViewModelBase
         };
 
     public ReactiveCommand<Unit, ProjectViewModel> EditComplete { get; }
-    public ReactiveCommand<Unit, ProjectViewModel> Delete { get; }
-
     public ReactiveCommand<Unit, Unit> DeleteLink { get; }
     private void DeleteLinkImpl() => _links.Remove(SelectedLink!);
     public ReactiveCommand<Unit, Unit> AddLink { get; }
-    private void AddLinkImpl() => _links.Add(new());
+    private void AddLinkImpl()
+    {
+        var newLink = new ProjectLinkViewModel();
+        _links.Add(newLink);
+        SelectedLink = newLink;
+    }
 
     public ReactiveCommand<Unit, int> MoveLinkUp { get; }
 
@@ -98,12 +110,5 @@ public sealed class ProjectViewModel : ViewModelBase
         var currentIndex = _links.Items.IndexOf(SelectedLink);
         _links.Move(currentIndex, ++currentIndex);
         return currentIndex;
-    }
-
-    public ProjectViewModel? Clone() => new(Id, ToProject());
-
-    public IObservable<IChangeSet<ProjectLinkViewModel>> ConnectLinks()
-    {
-        return _links.Connect();
     }
 }

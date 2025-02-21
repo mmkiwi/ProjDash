@@ -1,20 +1,17 @@
-﻿using System.Reactive.Disposables;
-using System.Reactive.Linq;
+﻿// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v.2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
 using System.Reflection;
 using System.Text.RegularExpressions;
 
-using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Interactivity;
 using Avalonia.ReactiveUI;
 
-using MMKiwi.ProjDash.ViewModel;
 using MMKiwi.ProjDash.ViewModel.IconEditors;
 using MMKiwi.ProjDash.ViewModel.Model;
 
 using Projektanker.Icons.Avalonia.MaterialDesign;
-
-using ReactiveUI;
 
 using Serilog;
 
@@ -36,7 +33,7 @@ public partial class MaterialIconEditor : ReactiveUserControl<MaterialIconViewMo
             {
                 var shortName = match.Groups["id"].Value;
                 yield return new MaterialIconListItem(shortName,
-                    new IconRef.MaterialIcon() { Reference = "mdi-" + shortName, });
+                    new IconRef.MaterialIcon { Reference = "mdi-" + shortName });
             }
             else
             {
@@ -47,7 +44,7 @@ public partial class MaterialIconEditor : ReactiveUserControl<MaterialIconViewMo
 
     public void LaunchIconList()
     {
-        TopLevel.GetTopLevel(this)?.Launcher.LaunchUriAsync(new("https://pictogrammers.com/library/mdi/"));
+        TopLevel.GetTopLevel(this)?.Launcher.LaunchUriAsync(new Uri("https://pictogrammers.com/library/mdi/"));
     }
 
     private static readonly Lazy<IReadOnlyList<MaterialIconListItem>> _iconNames = new(() => [..GetIconNames()]);

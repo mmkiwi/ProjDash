@@ -1,4 +1,6 @@
-﻿using System.Diagnostics;
+﻿// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v.2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 using Avalonia;
 using Avalonia.Controls;
@@ -6,20 +8,20 @@ using Avalonia.ReactiveUI;
 
 using MMKiwi.ProjDash.ViewModel;
 
-using Splat.Serilog;
-
 using Projektanker.Icons.Avalonia;
 using Projektanker.Icons.Avalonia.MaterialDesign;
 
 using ReactiveUI;
 
 using Serilog;
+using Serilog.Events;
 
 using Splat;
+using Splat.Serilog;
 
 namespace MMKiwi.ProjDash.GUI;
 
-class Program
+static class Program
 {
     // Initialization code. Don't use any Avalonia, third-party APIs or any
     // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
@@ -28,42 +30,44 @@ class Program
     public static async Task Main(string[] args)
     {
         bool verbose = args.Contains("--verbose", StringComparer.CurrentCultureIgnoreCase);
-        using var log = new LoggerConfiguration()
-            .MinimumLevel.Is(verbose ? Serilog.Events.LogEventLevel.Verbose : Serilog.Events.LogEventLevel.Debug)
+        var log = new LoggerConfiguration()
+            .MinimumLevel.Is(verbose ? LogEventLevel.Verbose : LogEventLevel.Debug)
 #if DEBUG
             .WriteTo.Debug()
             .WriteTo.Console()
 #endif
             .WriteTo.File(MainWindowViewModel.LogPath, rollingInterval: RollingInterval.Day)
             .CreateLogger();
-
-        using Mutex mutex = new(true, @"ProjDash.mutex", out bool mutexCreated);
-
-        if (!mutexCreated)
+        await using (log.ConfigureAwait(false))
         {
-            Log.Error("Program already running. Exiting...");
-            await WindowPipe.SendMessageAsync().ConfigureAwait(false);
-            return;
-        }
+            using Mutex mutex = new(true, "ProjDash.mutex", out bool mutexCreated);
+
+            if (!mutexCreated)
+            {
+                Log.Error("Program already running. Exiting...");
+                await WindowPipe.SendMessageAsync().ConfigureAwait(false);
+                return;
+            }
 
 
-        Log.Logger = log;
-        Locator.CurrentMutable.UseSerilogFullLogger();
+            Log.Logger = log;
+            Locator.CurrentMutable.UseSerilogFullLogger();
 
-        try
-        {
-            Log.Information("Startup");
-            
-            BuildAvaloniaApp()
-                .StartWithClassicDesktopLifetime(args);
-        }
-        catch (Exception ex)
-        {
-            Log.Fatal(ex, "Program terminated unexpectedly");
-        }
-        finally
-        {
-            await Log.CloseAndFlushAsync().ConfigureAwait(false);
+            try
+            {
+                Log.Information("Startup");
+
+                BuildAvaloniaApp()
+                    .StartWithClassicDesktopLifetime(args);
+            }
+            catch (Exception ex)
+            {
+                Log.Fatal(ex, "Program terminated unexpectedly");
+            }
+            finally
+            {
+                await Log.CloseAndFlushAsync().ConfigureAwait(false);
+            }
         }
     }
 
@@ -90,7 +94,7 @@ class Program
         IconProvider.Current.Register<MaterialDesignIconProvider>();
 
         RxApp.DefaultExceptionHandler = new HandleErrors();
-        TaskScheduler.UnobservedTaskException += (sender, args) =>
+        TaskScheduler.UnobservedTaskException += (_, args) =>
         {
             Log.Logger.Fatal(args.Exception, "Unobserved task exception");
         };

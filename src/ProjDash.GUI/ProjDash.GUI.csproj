@@ -1,4 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
+
+<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <OutputType>WinExe</OutputType>
         <TargetFramework>net9.0</TargetFramework>
@@ -6,6 +10,7 @@
         <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <ImplicitUsings>enable</ImplicitUsings>
+        <RuntimeIdentifiers>win-x86;win-x86;win-arm64</RuntimeIdentifiers>
         <LangVersion>preview</LangVersion>
         <SelfContained>true</SelfContained>
         <RuntimeIdentifier>win-x64</RuntimeIdentifier>
@@ -18,12 +23,12 @@
     </PropertyGroup>
     <PropertyGroup>
         <AssemblyName>MMKiwi.ProjDash</AssemblyName>
-        <Version>0.2.0</Version>
+        <Version>0.9.0</Version>
         <Authors>Micah Makaiwi</Authors>
         <Company>Micah Makaiwi</Company>
         <Product>Project Dashboard</Product>
-        <AssemblyVersion>0.2.0</AssemblyVersion>
-        <FileVersion>0.2.0</FileVersion>
+        <AssemblyVersion>0.9.0</AssemblyVersion>
+        <FileVersion>0.9.0</FileVersion>
         <NeutralLanguage>en-US</NeutralLanguage>
     </PropertyGroup>
     <PropertyGroup>
@@ -31,18 +36,18 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Avalonia" Version="11.2.*" />
-        <PackageReference Include="Avalonia.Controls.ColorPicker" Version="11.2.*" />
-        <PackageReference Include="Avalonia.Controls.TreeDataGrid" Version="11.1.1" />
-        <PackageReference Include="Avalonia.Desktop" Version="11.2.*" />
-        <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" Condition="'$(Configuration)' == 'Debug'" />
-        <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
-        <PackageReference Include="Splat.Serilog" Version="15.3.1" />
-        <PackageReference Include="Serilog.Sinks.Debug" Version="3.0.0" Condition="'$(Configuration)' == 'Debug'" />
-        <PackageReference Include="Avalonia.ReactiveUI" Version="11.2.*" />
-        <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.*" />
-        <PackageReference Include="Avalonia.Fonts.Inter" Version="11.2.*" />
-        <PackageReference Include="Projektanker.Icons.Avalonia.MaterialDesign" Version="9.6.0" />
+        <PackageReference Include="Avalonia" Version="11.2.*"/>
+        <PackageReference Include="Avalonia.Controls.ColorPicker" Version="11.2.*"/>
+        <PackageReference Include="Avalonia.Controls.TreeDataGrid" Version="11.1.1"/>
+        <PackageReference Include="Avalonia.Desktop" Version="11.2.*"/>
+        <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" Condition="'$(Configuration)' == 'Debug'"/>
+        <PackageReference Include="Serilog.Sinks.File" Version="6.0.0"/>
+        <PackageReference Include="Splat.Serilog" Version="15.3.1"/>
+        <PackageReference Include="Serilog.Sinks.Debug" Version="3.0.0" Condition="'$(Configuration)' == 'Debug'"/>
+        <PackageReference Include="Avalonia.ReactiveUI" Version="11.2.*"/>
+        <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.*"/>
+        <PackageReference Include="Avalonia.Fonts.Inter" Version="11.2.*"/>
+        <PackageReference Include="Projektanker.Icons.Avalonia.MaterialDesign" Version="9.6.0"/>
         <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
         <PackageReference Include="Avalonia.Diagnostics" Version="11.2.*">
             <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
@@ -52,19 +57,22 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="System.Drawing.Common" Version="9.0.2" />
+        <PackageReference Include="System.Drawing.Common" Version="9.0.2"/>
     </ItemGroup>
     <ItemGroup>
-        <AvaloniaResource Include="Assets\**" />
+        <AvaloniaResource Include="Assets\**"/>
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\NativeMethods\NativeMethods.csproj" />
-        <ProjectReference Include="..\ViewModel\ViewModel.csproj" />
+        <ProjectReference Include="..\NativeMethods\NativeMethods.csproj"/>
+        <ProjectReference Include="..\ViewModel\ViewModel.csproj"/>
     </ItemGroup>
     <ItemGroup>
-      <EmbeddedResource Include="Icons\*.xaml" />
+        <EmbeddedResource Include="Icons\*.xaml"/>
     </ItemGroup>
     <ItemGroup>
-      <Folder Include="Model\" />
+        <Compile Update="Dialogs\ErrorDialog.axaml.cs">
+            <DependentUpon>ErrorDialog.axaml</DependentUpon>
+            <SubType>Code</SubType>
+        </Compile>
     </ItemGroup>
 </Project>

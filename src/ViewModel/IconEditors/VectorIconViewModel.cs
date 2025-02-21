@@ -1,4 +1,8 @@
-﻿using System.Reactive.Linq;
+﻿// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v.2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+using System.Reactive.Linq;
 
 using MMKiwi.ProjDash.ViewModel.Model;
 
@@ -17,15 +21,15 @@ public class VectorIconViewModel : IconViewModel
             .ObserveOn(RxApp.MainThreadScheduler)
             .ToProperty(this, vm => vm.IconRef);
     }
-    
+
     public IEnumerable<string> Icons { get; }
 
-    
+
     private readonly ObservableAsPropertyHelper<IconRef?> _iconRef;
-    public override IconRef? IconRef => _iconRef.Value; 
-    
-    public string? SelectedIcon { get; set=>this.RaiseAndSetIfChanged(ref field, value); }
-    public override string? DisplayName => "Vector Icon";
+    public override IconRef? IconRef => _iconRef.Value;
+
+    public string? SelectedIcon { get; set => this.RaiseAndSetIfChanged(ref field, value); }
+    public override string DisplayName => "Vector Icon";
     public override string FieldLabel => "Icon";
     public override bool CanChangeColor => true;
 }

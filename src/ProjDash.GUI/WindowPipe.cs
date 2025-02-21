@@ -1,17 +1,11 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v.2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+using System.Diagnostics.CodeAnalysis;
 using System.IO.Pipes;
 using System.Reactive;
-using System.Reactive.Concurrency;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Reactive.Subjects;
-using System.Runtime.Serialization;
-
-using Avalonia.Controls;
-
-using ReactiveUI;
-
-using Serilog;
 
 namespace MMKiwi.ProjDash.GUI;
 

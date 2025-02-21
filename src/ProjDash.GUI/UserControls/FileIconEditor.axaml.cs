@@ -1,14 +1,18 @@
-﻿using System.Drawing;
+﻿// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v.2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 
-using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Markup.Xaml;
 using Avalonia.Platform.Storage;
 using Avalonia.ReactiveUI;
 using Avalonia.Threading;
 
 using MMKiwi.ProjDash.GUI.Dialogs;
+using MMKiwi.ProjDash.ViewModel;
 using MMKiwi.ProjDash.ViewModel.IconEditors;
 
 namespace MMKiwi.ProjDash.GUI.UserControls;
@@ -25,7 +29,7 @@ public partial class FileIconEditor : ReactiveUserControl<FileIconViewModel>
         if (ViewModel is not { } viewModel)
             return;
         var pickedFile = await TopLevel.GetTopLevel(this)!.StorageProvider.OpenFilePickerAsync(
-            new FilePickerOpenOptions()
+            new FilePickerOpenOptions
             {
                 AllowMultiple = false,
                 Title = "Select an icon",
@@ -35,12 +39,12 @@ public partial class FileIconEditor : ReactiveUserControl<FileIconViewModel>
                         new FilePickerFileType("All Icons") { Patterns = [..ImageFileTypes, ..ExecutableFileTypes] },
                         new FilePickerFileType("Image Files") { Patterns = [..ImageFileTypes] },
                         new FilePickerFileType("Executable files") { Patterns = [..ExecutableFileTypes] },
-                        FilePickerFileTypes.All,
+                        FilePickerFileTypes.All
                     ]
                     :
                     [
                         new FilePickerFileType("Image Files") { Patterns = [..ImageFileTypes] },
-                        FilePickerFileTypes.All,
+                        FilePickerFileTypes.All
                     ]
             }).ConfigureAwait(false);
         if (pickedFile is not [{ } file])
@@ -53,8 +57,12 @@ public partial class FileIconEditor : ReactiveUserControl<FileIconViewModel>
         {
             Span<byte> fileHeader = stackalloc byte[12];
             stream.ReadExactly(fileHeader);
-            string mimeType = "";
-            byte[]? fileData = null;
+            string mimeType;
+            byte[]? fileData;
+
+            string filePath =
+                file.TryGetLocalPath() ??
+                throw new NotSupportedException(); // Shouldn't ever hit this since we're on Windows
             switch (fileHeader)
             {
                 case [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, ..]:
@@ -90,50 +98,80 @@ public partial class FileIconEditor : ReactiveUserControl<FileIconViewModel>
                     mimeType = "image/png";
                     // Don't need stream for exe files
                     stream.Close();
-                    string filePath = file.TryGetLocalPath() ?? throw new NotImplementedException();
                     int numIcons = NativeMethods.ExtractIconW(IntPtr.Zero, filePath, -1);
                     int? iconIndex = 0;
-                    if (numIcons == 0)
+                    switch (numIcons)
                     {
-                        throw new NotImplementedException();
-                    }
-
-                    if (numIcons > 1)
-                    {
-                        
-                        iconIndex = await Dispatcher.UIThread
-                            .InvokeAsync(async () =>
-                            {
-                                IconDialog dialog = new() { ViewModel = new IconDialogViewModel(filePath) };
-                                return await dialog.ShowDialog<int?>((TopLevel.GetTopLevel(this) as Window)!).ConfigureAwait(false);
-                            })
-                            .ConfigureAwait(false);
+                        case 0:
+                            _ = await Dispatcher.UIThread.InvokeAsync(async () =>
+                                {
+                                    ErrorDialog dialog = new()
+                                    {
+                                        ViewModel = new ErrorDialogViewModel
+                                        {
+                                            MainMessage = $"Could not find any icons in {filePath}",
+                                            PrimaryButtonText = "Ok"
+                                        }
+                                    };
+                                    return await dialog
+                                        .ShowDialog<ErrorDialogResult>((TopLevel.GetTopLevel(this) as Window)!)
+                                        .ConfigureAwait(false);
+                                })
+                                .ConfigureAwait(false);
+                            return;
+                        case > 1:
+                            iconIndex = await Dispatcher.UIThread
+                                .InvokeAsync(async () =>
+                                {
+                                    IconDialog dialog = new() { ViewModel = new IconDialogViewModel(filePath) };
+                                    return await dialog.ShowDialog<int?>((TopLevel.GetTopLevel(this) as Window)!)
+                                        .ConfigureAwait(false);
+                                })
+                                .ConfigureAwait(false);
+                            break;
                     }
 
                     if (iconIndex is null)
                         return;
-                    
+
                     Icon? icon = Icon.ExtractIcon(filePath, iconIndex.Value, 24);
                     if (icon is null)
-                        throw new NotImplementedException();
+                        return;
+
                     var bmp = icon.ToBitmap();
                 {
                     using MemoryStream ms = new();
-                    bmp.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+                    bmp.Save(ms, ImageFormat.Png);
                     ms.Seek(0, SeekOrigin.Begin);
                     fileData = ms.ToArray();
                 }
                     break;
                 default:
                     // show exception
-                    throw new NotImplementedException();
+                    await Dispatcher.UIThread.InvokeAsync(async () =>
+                        {
+                            ErrorDialog dialog = new()
+                            {
+                                ViewModel = new ErrorDialogViewModel
+                                {
+                                    MainMessage =
+                                        $"Error loading file {filePath}, not a supported file format.",
+                                    PrimaryButtonText = "Ok"
+                                }
+                            };
+                            await dialog.ShowDialog<ErrorDialogResult>((TopLevel.GetTopLevel(this) as Window)!)
+                                .ConfigureAwait(false);
+                        })
+                        .ConfigureAwait(false);
+                    return;
             }
 
             viewModel.IconUri = $"data:{mimeType};base64,{Convert.ToBase64String(fileData)}";
         }
     }
 
-    public static async Task<byte[]> ReadFileFullyAsync(Stream input)
+
+    private static async Task<byte[]> ReadFileFullyAsync(Stream input)
     {
         input.Seek(0, SeekOrigin.Begin);
         using MemoryStream ms = new((int)input.Length);

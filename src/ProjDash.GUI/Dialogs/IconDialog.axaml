@@ -1,11 +1,13 @@
-﻿<Window xmlns="https://github.com/avaloniaui"
+﻿<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
+<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:dialogs="clr-namespace:MMKiwi.ProjDash.GUI.Dialogs"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         Name="ParentControl"
-        xmlns:sys="clr-namespace:System"
         x:DataType="dialogs:IconDialogViewModel"
         x:Class="MMKiwi.ProjDash.GUI.Dialogs.IconDialog"
         Title="IconDialog">
@@ -23,7 +25,9 @@
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
-        <Button Margin="4" Grid.Column="0" Grid.Row="1" HorizontalAlignment="Right" IsDefault="True" Content="Cancel" Command="{Binding Cancel}" />
-        <Button Margin="4" Grid.Column="1" Grid.Row="1" HorizontalAlignment="Right" IsDefault="True" Content="Ok" Command="{Binding Save}" Classes="accent" />
+        <Button Margin="4" Grid.Column="0" Grid.Row="1" HorizontalAlignment="Right" IsDefault="True" Content="Cancel"
+                Command="{Binding Cancel}" />
+        <Button Margin="4" Grid.Column="1" Grid.Row="1" HorizontalAlignment="Right" IsDefault="True" Content="Ok"
+                Command="{Binding Save}" Classes="accent" />
     </Grid>
 </Window>

@@ -1,4 +1,8 @@
-﻿using Avalonia.Controls;
+﻿// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v.2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 
 using MMKiwi.ProjDash.GUI.Dialogs;
@@ -11,42 +15,18 @@ namespace MMKiwi.ProjDash.GUI;
 
 public class ViewLocator : IDataTemplate
 {
-    public Control? Build(object? data)
+    public Control Build(object? data)
     {
         return data switch
         {
-            Project project => new ProjectView()
-            {
-                ViewModel = project
-            },
-            MainWindowViewModel mainWindowViewModel => new MainWindow()
-            {
-                ViewModel = mainWindowViewModel
-            },
-            ProjectLink projectLink => new ProjectLinkButton()
-            {
-                ViewModel = projectLink
-            },
-            ProjectViewModel projectVm => new EditProjectDialog()
-            {
-                ViewModel = projectVm
-            },
-            ProjectLinkViewModel projectLink => new ProjectLinkEditor()
-            {
-                ViewModel = projectLink
-            },
-            MaterialIconViewModel material => new MaterialIconEditor()
-            {
-                ViewModel = material
-            },
-            FileIconViewModel material => new FileIconEditor()
-            {
-                ViewModel = material
-            },
-            VectorIconViewModel vector => new VectorIconEditor()
-            {
-                ViewModel = vector
-            },
+            Project project => new ProjectView { ViewModel = project },
+            MainWindowViewModel mainWindowViewModel => new MainWindow { ViewModel = mainWindowViewModel },
+            ProjectLink projectLink => new ProjectLinkButton { ViewModel = projectLink },
+            ProjectViewModel projectVm => new EditProjectDialog { ViewModel = projectVm },
+            ProjectLinkViewModel projectLink => new ProjectLinkEditor { ViewModel = projectLink },
+            MaterialIconViewModel material => new MaterialIconEditor { ViewModel = material },
+            FileIconViewModel material => new FileIconEditor { ViewModel = material },
+            VectorIconViewModel vector => new VectorIconEditor { ViewModel = vector },
             _ => new TextBlock { Text = $"Not Found: {data?.GetType().Name ?? null}" }
         };
     }
