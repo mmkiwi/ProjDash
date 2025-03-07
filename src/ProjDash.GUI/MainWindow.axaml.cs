@@ -18,6 +18,7 @@ using MMKiwi.ProjDash.GUI.Dialogs;
 using MMKiwi.ProjDash.GUI.UserControls;
 using MMKiwi.ProjDash.ViewModel;
 using MMKiwi.ProjDash.ViewModel.Model;
+using MMKiwi.ProjDash.ViewModel.Services;
 
 using ReactiveUI;
 
@@ -40,6 +41,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IEnableLo
 
     public MainWindow()
     {
+        IProjDashSettingsService? settingsService = Locator.Current.GetService<IProjDashSettingsService>();
         PositionChanged += (_, e) => UpdatePosition(e.Point.X, e.Point.Y);
         SizeChanged += (_, e) => UpdateSize(e.NewSize.Width, e.NewSize.Height);
         Log.Verbose("MainWindow");
@@ -55,7 +57,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IEnableLo
 
             ShowLogsCommand = ReactiveCommand.CreateFromTask(async () =>
             {
-                string? path = Path.GetDirectoryName(MainWindowViewModel.LogPath);
+                string? path = Path.GetDirectoryName(Program.LogPath);
                 if (Directory.Exists(path))
                     await Launcher.LaunchUriAsync(new Uri(path)).ConfigureAwait(false);
             });
@@ -63,11 +65,11 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IEnableLo
         else
         {
             EditSettingsCommand =
-                ReactiveCommand.Create(static () => Log.Information($"Editing {MainWindowViewModel.SettingsPath}"));
+                ReactiveCommand.Create(() => Log.Information($"Editing {settingsService?.SettingsPath}"));
             NewSettingsCommand =
-                ReactiveCommand.Create(static () => Log.Information($"New {MainWindowViewModel.SettingsPath}"));
+                ReactiveCommand.Create(() => Log.Information($"New {settingsService?.SettingsPath}"));
             ShowLogsCommand =
-                ReactiveCommand.Create(static () => Log.Information("Showing Logs"));
+                ReactiveCommand.Create(() => Log.Information("Showing Logs"));
             Add =
                 ReactiveCommand.Create<ProjectViewModel?>(static () =>
                 {
@@ -149,18 +151,20 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IEnableLo
 
     private bool _isLoaded;
 
-
+    #warning todo move up down
+    
     private async Task NewSettingsAsync()
     {
+        IProjDashSettingsService? settingsService = Locator.Current.GetService<IProjDashSettingsService>()!;
         Debug.Assert(ViewModel is not null);
-        await MainWindowViewModel.SaveSchemaAsync().ConfigureAwait(false);
-        if (File.Exists(MainWindowViewModel.SettingsPath))
+        await ViewModel.SaveSchemaAsync().ConfigureAwait(false);
+        if (File.Exists(settingsService?.SettingsPath))
         {
             ErrorDialog dialog = new()
             {
                 ViewModel = new ErrorDialogViewModel
                 {
-                    MainMessage = $"The file {MainWindowViewModel.SettingsPath} already exists. Overwrite?",
+                    MainMessage = $"The file {settingsService?.SettingsPath} already exists. Overwrite?",
                     PrimaryButtonText = "No",
                     SecondaryButtonText = "Yes"
                 }
@@ -174,7 +178,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IEnableLo
                 return;
         }
 
-        var fileStream = File.Open(MainWindowViewModel.SettingsPath, FileMode.Create, FileAccess.Write, FileShare.Read);
+        var fileStream = File.Open(settingsService.SettingsPath!, FileMode.Create, FileAccess.Write, FileShare.Read);
         await using (fileStream.ConfigureAwait(false))
         {
             var blankRoot = new SettingsRoot
@@ -232,17 +236,18 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IEnableLo
         }
 
         await Dispatcher.UIThread.InvokeAsync(async () =>
-                await Launcher.LaunchUriAsync(new Uri(MainWindowViewModel.SettingsPath)).ConfigureAwait(false))
+                await Launcher.LaunchUriAsync(new Uri(settingsService.SettingsPath)).ConfigureAwait(false))
             .ConfigureAwait(false);
     }
 
 
     private async Task EditSettingsAsync()
     {
+        IProjDashSettingsService settingsService = Locator.Current.GetService<IProjDashSettingsService>()!;
         try
         {
-            await MainWindowViewModel.SaveSchemaAsync().ConfigureAwait(true);
-            await this.Launcher.LaunchUriAsync(new Uri(MainWindowViewModel.SettingsPath)).ConfigureAwait(true);
+            await ViewModel!.SaveSchemaAsync().ConfigureAwait(true);
+            await this.Launcher.LaunchUriAsync(new Uri(settingsService.SettingsPath)).ConfigureAwait(true);
         }
         catch (Exception ex)
         {
@@ -250,7 +255,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IEnableLo
             {
                 ViewModel = new ErrorDialogViewModel
                 {
-                    MainMessage = $"Could not open {MainWindowViewModel.SettingsPath}",
+                    MainMessage = $"Could not open {settingsService.SettingsPath}",
                     PrimaryButtonText = "OK",
                     Exception = ex
                 }

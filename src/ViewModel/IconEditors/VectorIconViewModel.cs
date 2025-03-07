@@ -2,11 +2,13 @@
 // License, v.2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 
 using MMKiwi.ProjDash.ViewModel.Model;
 
 using ReactiveUI;
+using ReactiveUI.Validation.Extensions;
 
 namespace MMKiwi.ProjDash.ViewModel.IconEditors;
 
@@ -20,6 +22,16 @@ public class VectorIconViewModel : IconViewModel
             .Select(ic => ic is null ? null : new IconRef.ImportIcon { Reference = ic })
             .ObserveOn(RxApp.MainThreadScheduler)
             .ToProperty(this, vm => vm.IconRef);
+        
+        this.WhenActivated(d =>
+        {
+            this.ValidationRule(vm => vm.SelectedIcon,
+                si => si is not null,
+                "Please select an icon").DisposeWith(d);
+            this.ValidationRule(vm => vm.SelectedIcon,
+                si => Icons.Contains(si),
+                si => "Invalid icon {si}").DisposeWith(d);
+        });
     }
 
     public IEnumerable<string> Icons { get; }

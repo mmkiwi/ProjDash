@@ -23,6 +23,10 @@ namespace MMKiwi.ProjDash.GUI;
 
 static class Program
 {
+    public static string LogPath => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+        "MMKiwi",
+        "ProjDash", "Log", "ProjDash.log");
+    
     // Initialization code. Don't use any Avalonia, third-party APIs or any
     // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
     // yet and stuff might break.
@@ -36,7 +40,7 @@ static class Program
             .WriteTo.Debug()
             .WriteTo.Console()
 #endif
-            .WriteTo.File(MainWindowViewModel.LogPath, rollingInterval: RollingInterval.Day)
+            .WriteTo.File(LogPath, rollingInterval: RollingInterval.Day)
             .CreateLogger();
         await using (log.ConfigureAwait(false))
         {
@@ -82,7 +86,7 @@ static class Program
                 .WriteTo.Debug()
                 .WriteTo.Console()
 #endif
-                .WriteTo.File(MainWindowViewModel.LogPath + ".design.log", rollingInterval: RollingInterval.Day)
+                .WriteTo.File(LogPath + ".design.log", rollingInterval: RollingInterval.Day)
                 .CreateLogger();
 
             Log.Logger = log;

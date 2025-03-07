@@ -23,7 +23,7 @@ public sealed class ProjectLinkViewModel : ViewModelBase
     public string? Uri { get; set => this.RaiseAndSetIfChanged(ref field, value); }
     public string? Color { get; set => this.RaiseAndSetIfChanged(ref field, value); }
 
-    public IReadOnlyList<IconViewModel> IconTypes { get; init; }
+    public IReadOnlyList<IconViewModel> IconTypes { get; }
 
     public IconViewModel? SelectedIcon { get; set => this.RaiseAndSetIfChanged(ref field, value); }
 

@@ -10,10 +10,8 @@
         <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <ImplicitUsings>enable</ImplicitUsings>
-        <RuntimeIdentifiers>win-x86;win-x86;win-arm64</RuntimeIdentifiers>
         <LangVersion>preview</LangVersion>
         <SelfContained>true</SelfContained>
-        <RuntimeIdentifier>win-x64</RuntimeIdentifier>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
         <PublishAot Condition="'$(Configuration)' != 'Debug'">true</PublishAot>

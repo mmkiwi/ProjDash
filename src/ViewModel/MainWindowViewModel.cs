@@ -10,6 +10,7 @@ using System.Text.Json;
 using System.Text.Json.Schema;
 
 using MMKiwi.ProjDash.ViewModel.Model;
+using MMKiwi.ProjDash.ViewModel.Services;
 
 using ReactiveUI;
 
@@ -21,6 +22,7 @@ public class MainWindowViewModel : ViewModelBase
 {
     public MainWindowViewModel()
     {
+        SettingsService = Locator.Current.GetService<IProjDashSettingsService>() ?? new FileProjDashSettingsService();
         WindowSettings = LoadWindowSettings();
         RefreshSettings = ReactiveCommand.CreateFromTask(RefreshSettingsAsync,
             outputScheduler: RxApp.MainThreadScheduler);
@@ -43,12 +45,14 @@ public class MainWindowViewModel : ViewModelBase
         });
     }
 
+    private IProjDashSettingsService SettingsService { get; }
+
 
     private WindowSettings LoadWindowSettings()
     {
         try
         {
-            using var wndSettingsStream = File.OpenRead(WindowSettingsPath);
+            using var wndSettingsStream = File.OpenRead(SettingsService.WindowSettingsPath);
             return JsonSerializer.Deserialize(wndSettingsStream,
                 SettingsSerializer.Default.WindowSettings);
         }
@@ -59,24 +63,7 @@ public class MainWindowViewModel : ViewModelBase
         }
     }
 
-    public static string SchemaPath => Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "MMKiwi",
-        "ProjDash", "Settings.schema.json");
 
-    public static string SettingsPath => Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "MMKiwi",
-        "ProjDash", "Settings.json");
-
-    public static string WindowSettingsPath => Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "MMKiwi",
-        "ProjDash", "Settings.wnd.json");
-
-    public static string LogPath => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "MMKiwi",
-        "ProjDash", "Log", "ProjDash.log");
 
     public ReactiveCommand<Unit, SettingsRoot> RefreshSettings { get; }
     public Interaction<ErrorDialogViewModel, Unit> ErrorDialog { get; } = new();
@@ -91,7 +78,7 @@ public class MainWindowViewModel : ViewModelBase
         try
         {
             LogHost.Default.Debug($"Saving window settings {settings.Width}x{settings.Height}");
-            var wndSettingsStream = File.Open(WindowSettingsPath, FileMode.Create);
+            var wndSettingsStream = File.Open(SettingsService.WindowSettingsPath, FileMode.Create);
             await using (wndSettingsStream.ConfigureAwait(false))
             {
                 await JsonSerializer.SerializeAsync(wndSettingsStream, settings,
@@ -108,12 +95,12 @@ public class MainWindowViewModel : ViewModelBase
     {
         try
         {
-            this.Log().Info($"Trying to load {SettingsPath}");
-            if (!File.Exists(SettingsPath))
+            this.Log().Info($"Trying to load {SettingsService.SettingsPath}");
+            if (!File.Exists(SettingsService.SettingsPath))
             {
                 await SaveSettings(new SettingsRoot() { Projects = [] }).ConfigureAwait(false);
             }
-            var settingsStream = File.OpenRead(SettingsPath);
+            var settingsStream = File.OpenRead(SettingsService.SettingsPath);
             await using (settingsStream.ConfigureAwait(false))
             {
                 return await JsonSerializer.DeserializeAsync<SettingsRoot>(settingsStream,
@@ -126,7 +113,7 @@ public class MainWindowViewModel : ViewModelBase
             await ErrorDialog.Handle(new ErrorDialogViewModel
             {
                 Exception = ex,
-                MainMessage = $"Could not load settings from {SettingsPath}",
+                MainMessage = $"Could not load settings from {SettingsService.SettingsPath}",
                 PrimaryButtonText = "OK"
             });
             return SettingsRoot.Empty;
@@ -152,9 +139,9 @@ public class MainWindowViewModel : ViewModelBase
         RefreshSettings.Execute().Subscribe();
     }
 
-    private static async Task SaveSettings(SettingsRoot newSettings)
+    private async Task SaveSettings(SettingsRoot newSettings)
     {
-        var jsonStream = File.Open(SettingsPath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read);
+        var jsonStream = File.Open(SettingsService.SettingsPath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read);
         await using (jsonStream.ConfigureAwait(false))
         {
             await JsonSerializer.SerializeAsync(jsonStream, newSettings, SettingsSerializer.Default.SettingsRoot)
@@ -182,9 +169,9 @@ public class MainWindowViewModel : ViewModelBase
         RefreshSettings.Execute().Subscribe();
     }
 
-    public static async Task SaveSchemaAsync()
+    public async Task SaveSchemaAsync()
     {
-        var schemaFile = File.OpenWrite(SchemaPath);
+        var schemaFile = File.OpenWrite(SettingsService.SchemaPath);
         await using (schemaFile.ConfigureAwait(false))
         {
             Utf8JsonWriter writer = new(schemaFile);

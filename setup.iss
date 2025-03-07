@@ -20,6 +20,7 @@ AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
 DefaultDirName={userappdata}\mmkiwi\{#MyAppName}
 UninstallDisplayIcon={app}\{#MyAppExeName}
+OutputBaseFilename={#MyAppName}_{#MyAppVersion}_setup
 ; "ArchitecturesAllowed=x64compatible" specifies that Setup cannot run
 ; on anything but x64 and Windows 11 on Arm.
 ArchitecturesAllowed=arm64 or x64compatible or x86compatible
@@ -31,7 +32,6 @@ ArchitecturesInstallIn64BitMode=x64compatible
 DisableProgramGroupPage=yes
 ; Remove the following line to run in administrative install mode (install for all users).
 PrivilegesRequired=lowest
-OutputBaseFilename=ProjDash
 OutputDir=artifacts\Installer
 SolidCompression=yes
 WizardStyle=modern

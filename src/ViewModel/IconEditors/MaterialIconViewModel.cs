@@ -23,7 +23,7 @@ public sealed class MaterialIconViewModel : IconViewModel
             not null => icon.Reference
         };
         _iconRef = this.WhenAnyValue(vm => vm.Icon)
-            .Select(static ic => ic is null ? null : new IconRef.MaterialIcon { Reference = $"mdi-{ic}" })
+            .Select(static ic => string.IsNullOrWhiteSpace(ic) ? null : new IconRef.MaterialIcon { Reference = $"mdi-{ic}" })
             .ToProperty(this, vm => vm.IconRef);
         
         this.WhenActivated(d=>

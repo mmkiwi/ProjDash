@@ -7,6 +7,8 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace MMKiwi.ProjDash.ViewModel.Model;
 
+
+[ExcludeFromCodeCoverage(Justification = "DTO")]
 public sealed record SettingsRoot
 {
     [field: MaybeNull] public static SettingsRoot Empty => field ??= new SettingsRoot { Projects = [] };

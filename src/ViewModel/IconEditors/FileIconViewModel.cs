@@ -2,11 +2,13 @@
 // License, v.2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 
 using MMKiwi.ProjDash.ViewModel.Model;
 
 using ReactiveUI;
+using ReactiveUI.Validation.Extensions;
 
 namespace MMKiwi.ProjDash.ViewModel.IconEditors;
 
@@ -22,6 +24,11 @@ public sealed class FileIconViewModel : IconViewModel
             .Select(ic => ic is null ? null : new IconRef.DataUriIcon { Reference = ic })
             .ObserveOn(RxApp.MainThreadScheduler)
             .ToProperty(this, vm => vm.IconRef);
+
+        this.WhenActivated(d =>
+        {
+            this.ValidationRule(vm => vm.IconRef, ir => ir is not null, "An icon must be set").DisposeWith(d);
+        });
     }
 
     public string? IconUri { get; set => this.RaiseAndSetIfChanged(ref field, value); }
