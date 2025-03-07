@@ -12,17 +12,21 @@
              Name="ParentControl"
              x:Class="MMKiwi.ProjDash.GUI.UserControls.ProjectLinkButton">
     <UserControl.Styles>
-        <Style Selector="Button:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="#99ffffff" />
+        <Style Selector="ToolTip">
+            <Setter Property="Background" Value="#99000000" />
+            <Setter Property="Foreground" Value="#ffffff" />
+        </Style>
+        <Style Selector="ToolTip TextBlock">
+            <Setter Property="Foreground" Value="#ffffff" />
         </Style>
     </UserControl.Styles>
     <Button Margin="2" Padding="2" Background="White" Command="{Binding #ParentControl.Open}"
-            CommandParameter="{Binding Uri}">
-        <Image
-            Width="24"
-            Height="24"
+            CommandParameter="{Binding Uri}"
             ToolTip.Tip="{Binding Name}"
             ToolTip.ShowDelay="10">
+        <Image
+            Width="24"
+            Height="24">
             <Image.Source>
                 <MultiBinding Converter="{x:Static converters:LinkIconConverter.Instance}">
                     <CompiledBinding Path="Icon" />

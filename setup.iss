@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "ProjDash"
-#define MyAppVersion "0.9.0"
+#define MyAppVersion "0.9.1"
 #define MyAppPublisher "Micah Makaiwi"
 #define MyAppURL "https://github.com/mmkiwi/projdash"
 #define MyAppExeName "MMKiwi.ProjDash.exe"
